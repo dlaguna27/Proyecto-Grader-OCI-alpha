@@ -58,7 +58,7 @@ Checkers and interactors use [testlib](https://github.com/MikeMirzayanov/testlib
 On a machine with internet:
 
 ```powershell
-.\scripts\export-images.ps1        # builds and writes noi-cms-images.tar (~1.5 GB)
+.\scripts\export-images.ps1        # builds and writes noi-cms-images.tar
 ```
 
 Copy the repository folder and the tar to the contest server (USB), then on the server:
