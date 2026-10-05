@@ -9,6 +9,8 @@ import { ProblemPage } from './pages/Problem';
 import { MySubmissionsPage } from './pages/MySubmissions';
 import { SubmissionPage } from './pages/Submission';
 import { ScoreboardPage } from './pages/Scoreboard';
+import { RankingHistoryPage } from './pages/RankingHistory';
+import { AdminRevealPage } from './pages/admin/Reveal';
 import { AdminContestsPage } from './pages/admin/Contests';
 import { AdminContestPage } from './pages/admin/Contest';
 import { AdminProblemPage } from './pages/admin/Problem';
@@ -37,12 +39,15 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       {/* Scoreboards may be public (e.g. for a projector) when the contest allows it. */}
       <Route path="/board/:cid" element={<ScoreboardPage standalone />} />
+      <Route path="/board/:cid/history" element={<RankingHistoryPage standalone />} />
+      <Route path="/admin/contests/:cid/reveal" element={<RequireUser admin><AdminRevealPage /></RequireUser>} />
       <Route element={<Layout />}>
         <Route path="/" element={<RequireUser><Home /></RequireUser>} />
         <Route path="/c/:cid" element={<RequireUser><ContestHomePage /></RequireUser>} />
         <Route path="/c/:cid/p/:pid" element={<RequireUser><ProblemPage /></RequireUser>} />
         <Route path="/c/:cid/submissions" element={<RequireUser><MySubmissionsPage /></RequireUser>} />
         <Route path="/c/:cid/scoreboard" element={<ScoreboardPage />} />
+        <Route path="/c/:cid/history" element={<RankingHistoryPage />} />
         <Route path="/s/:sid" element={<RequireUser><SubmissionPage /></RequireUser>} />
         <Route path="/admin" element={<RequireUser admin><AdminContestsPage /></RequireUser>} />
         <Route path="/admin/contests/:cid" element={<RequireUser admin><AdminContestPage /></RequireUser>} />

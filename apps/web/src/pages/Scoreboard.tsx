@@ -9,8 +9,9 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { Countdown, ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { cn, fmtClock, score } from '@/lib/utils';
 import { useLiveUpdates } from '@/lib/events';
+import { ScoreboardTabs } from './RankingHistory';
 
-function ioiCellClass(v: number, max: number | null) {
+export function ioiCellClass(v: number, max: number | null) {
   if (!max) return '';
   if (v >= max) return 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300';
   if (v > 0) return 'bg-amber-500/15';
@@ -25,19 +26,19 @@ export function ScoreboardPage({ standalone }: { standalone?: boolean }) {
     refetchInterval: 30_000,
   });
   if (standalone) return <StandaloneBoard q={q} cid={cid!} />;
-  return <BoardView q={q} />;
+  return <BoardView q={q} nav={<ScoreboardTabs cid={cid!} active="table" />} />;
 }
 
 function StandaloneBoard({ q, cid }: { q: ReturnType<typeof useQuery<Board>>; cid: string }) {
   useLiveUpdates(cid);
   return (
     <div className="container py-6">
-      <BoardView q={q} big />
+      <BoardView q={q} big nav={<ScoreboardTabs cid={cid} standalone active="table" />} />
     </div>
   );
 }
 
-function BoardView({ q, big }: { q: ReturnType<typeof useQuery<Board>>; big?: boolean }) {
+function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big?: boolean; nav?: React.ReactNode }) {
   if (q.isLoading) return <Spinner />;
   if (q.error || !q.data) return <ErrorBox error={q.error} />;
   const b = q.data;
@@ -59,6 +60,7 @@ function BoardView({ q, big }: { q: ReturnType<typeof useQuery<Board>>; big?: bo
             )}
           </span>
         }
+        actions={nav}
       />
       <Card>
         <Table className={big ? 'text-base' : ''}>

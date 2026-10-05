@@ -70,6 +70,7 @@ export function Layout() {
                 <NavItem to={`/c/${contestId}`} end>Problems</NavItem>
                 <NavItem to={`/c/${contestId}/submissions`}>My submissions</NavItem>
                 <NavItem to={`/c/${contestId}/scoreboard`}>Scoreboard</NavItem>
+                <NavItem to={`/c/${contestId}/history`}>Ranking history</NavItem>
               </>
             )}
           </nav>
