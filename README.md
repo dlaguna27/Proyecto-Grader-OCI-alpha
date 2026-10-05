@@ -1,6 +1,6 @@
 # NOI Contest Management System
 
-A self-hosted contest system for the National Olympiad in Informatics.
+A self-hosted contest system for the Costa Rican Olympiad in Informatics (OCI).
 
 - **Contestant UI:** problems (Markdown + LaTeX or PDF), samples, C++20 / Python 3 submissions, output-only uploads, full per-test and per-subtask feedback, live scoreboard, announcements.
 - **Admin panel:** contests (IOI or ICPC), problems, test-case zip upload, subtask editor with decimal points, custom checkers and interactors (testlib), accounts (CSV import, printable credential cards), participants (start delay / extra time), queue monitor, rejudge, results CSV.
