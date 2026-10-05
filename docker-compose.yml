@@ -53,6 +53,7 @@ services:
       SINGLE_SESSION: ${SINGLE_SESSION:-1}
       SESSION_HOURS: ${SESSION_HOURS:-24}
       SUBMIT_PER_MINUTE: ${SUBMIT_PER_MINUTE:-6}
+      LOGIN_PER_MINUTE: ${LOGIN_PER_MINUTE:-100}
       TZ: ${TZ:-UTC}
     volumes:
       - filedata:/data

@@ -54,7 +54,7 @@ export async function registerAuth(app: FastifyInstance): Promise<void> {
   });
 
   const LoginBody = z.object({ username: z.string().min(1).max(100), password: z.string().min(1).max(200) });
-  app.post('/api/auth/login', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
+  app.post('/api/auth/login', { config: { rateLimit: { max: config.loginPerMinute, timeWindow: '1 minute' } } }, async (req, reply) => {
     const body = LoginBody.parse(req.body);
     const user = await prisma.user.findUnique({ where: { username: body.username.trim() } });
     const ok = user ? await verify(user.passwordHash, body.password) : false;
