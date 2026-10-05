@@ -283,7 +283,7 @@ function SettingsTab({ c }: { c: AdminContest }) {
           }
         >
           <NativeSelect value={f.balloonPalette} onChange={(e) => set('balloonPalette', e.target.value as AdminContest['balloonPalette'])}>
-            <option value="ICPC">ICPC preset (red, blue, green, yellow, …)</option>
+            <option value="ICPC">ICPC preset (white, black, red, dark red, …)</option>
             <option value="CUSTOM">Custom color per problem</option>
           </NativeSelect>
         </Field>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assignBalloonColors, balloonTextColor, ICPC_BALLOON_COLORS, ioiColorStrength } from './index.js';
+import { assignBalloonColors, balloonTextColor, ICPC_BALLOON_COLORS, ioiColorStrength, ioiTintColor } from './index.js';
 
 describe('balloons', () => {
   const probs = [
@@ -29,7 +29,12 @@ describe('balloons', () => {
     expect(ioiColorStrength(2500, 10000)).toBeLessThan(ioiColorStrength(7500, 10000));
   });
   it('picks readable text', () => {
-    expect(balloonTextColor('#fdd835')).toBe('#111111');
-    expect(balloonTextColor('#1e63d6')).toBe('#ffffff');
+    expect(balloonTextColor('#ffff00')).toBe('#111111');
+    expect(balloonTextColor('#000080')).toBe('#ffffff');
+  });
+  it('tints near-white balloons gray in IOI cells', () => {
+    expect(ioiTintColor('#ffffff')).toBe('#808080');
+    expect(ioiTintColor('#ffff00')).toBe('#ffff00');
+    expect(ioiTintColor('#c0c0c0')).toBe('#c0c0c0');
   });
 });

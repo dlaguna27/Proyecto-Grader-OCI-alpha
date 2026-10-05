@@ -147,7 +147,7 @@ async function main() {
   const board = await admin.get(`/api/contests/${ioi.id}/scoreboard`);
   const r1 = board.rows.find((r) => r.username === `team_${tag}_1`);
   check('IOI scoreboard: team 1 rank 1 with 100', r1?.rank === 1 && r1.totalCenti === 10000, JSON.stringify(r1));
-  check('balloon colors: ICPC preset by default', board.problems.every((p) => /^#[0-9a-f]{6}$/.test(p.color)) && board.problems[0].color === '#e53935', JSON.stringify(board.problems.map((p) => p.color)));
+  check('balloon colors: ICPC preset by default', board.problems.every((p) => /^#[0-9a-f]{6}$/.test(p.color)) && board.problems[0].color === '#ffffff', JSON.stringify(board.problems.map((p) => p.color)));
   await admin.patch(`/api/admin/contests/${ioi.id}`, { balloonPalette: 'CUSTOM' });
   await admin.patch(`/api/admin/problems/${board.problems[0].id}`, { balloonColor: '#123abc' });
   const board2 = await admin.get(`/api/contests/${ioi.id}/scoreboard`);

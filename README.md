@@ -31,7 +31,7 @@ Linux/macOS: `cp .env.example .env`, edit the passwords, then `docker compose up
 ## Running a contest
 
 1. **Users** → *Import CSV* (`username,password,displayName,members,organization,region`). One account per team or individual — one computer each. Empty passwords are generated; print the credential cards.
-2. **Contests** → *New contest*, choose **IOI** or **ICPC**. IOI defaults to 50 submissions per task; ICPC is unlimited. Set the freeze time if you want one. *Balloon colors*: the ICPC preset (A red, B blue, C green, D yellow, …) or a custom color per problem (problem *Settings*).
+2. **Contests** → *New contest*, choose **IOI** or **ICPC**. IOI defaults to 50 submissions per task; ICPC is unlimited. Set the freeze time if you want one. *Balloon colors*: the ICPC preset (A white, B black, C red, D dark red, E yellow, …) or a custom color per problem (problem *Settings*).
 3. **Participants** → *Add all teams*. Late arrival? Give that team a start delay or extra time.
 4. **Problems** → *Add problem* (Batch, Output-only or Interactive), then:
    - *Tests*: upload a zip with `NAME.in` + `NAME.out` (or `.ans`). Names containing `sample`/`example` are shown to contestants.

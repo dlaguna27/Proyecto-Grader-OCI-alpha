@@ -39,7 +39,7 @@ Tips:
    - ICPC: unlimited submissions, penalty 20 min per rejected try, compile errors don't count by default.
    - *Scoreboard freeze*: optional time after which other teams' results are hidden (teams always see their own).
    - Uncheck *Visible* while you prepare so teams don't see it yet.
-   - *Balloon colors*: **ICPC preset** gives problems A, B, C, … red, blue, green, yellow, orange, purple, … by display order. **Custom** lets you pick each problem's color in its *Settings* (useful to match the balloons you actually bought). Balloons appear on the problem list and scoreboard; in IOI the scoreboard cell fills with the problem's color, stronger the closer the score is to the maximum.
+   - *Balloon colors*: **ICPC preset** gives problems A, B, C, … the standard ICPC colors by display order: white, black, red, dark red, yellow, green, blue, navy, magenta, purple, lime, cyan, silver, orange (then it starts over). **Custom** lets you pick each problem's color in its *Settings* (useful to match the balloons you actually bought). Balloons appear on the problem list and scoreboard; in IOI the scoreboard cell fills with the problem's color, stronger the closer the score is to the maximum (a white balloon is shown as gray there, since white can't get stronger).
 5. **Participants**: add the teams to the contest. Creating accounts does not register them; only participants can log in to the contest and appear on the scoreboard. Delay/extra-time fields save when you click outside the box.
 6. **Problems → Add problem**, for each one:
    - *Settings*: type, time/memory limit, score decimals, output checking.

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { balloonTextColor, ioiColorStrength } from '@noi/shared';
+import { balloonTextColor, ioiColorStrength, ioiTintColor } from '@noi/shared';
 import { cn } from '@/lib/utils';
 
 export function Balloon({ color, className, title }: { color: string; className?: string; title?: string }) {
@@ -22,6 +22,7 @@ export function Balloon({ color, className, title }: { color: string; className?
 export function ioiCellStyle(scoreCenti: number, maxCenti: number | null, color: string): CSSProperties | undefined {
   const a = ioiColorStrength(scoreCenti, maxCenti);
   if (!a) return undefined;
+  color = ioiTintColor(color);
   const alpha = Math.round(a * 255).toString(16).padStart(2, '0');
   return { backgroundColor: `${color}${alpha}`, color: a >= 0.6 ? balloonTextColor(color) : undefined, fontWeight: a === 1 ? 600 : undefined };
 }
