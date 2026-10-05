@@ -60,7 +60,7 @@ const SubtasksBody = z.object({
   subtasks: z
     .array(
       z.object({
-        name: z.string().max(200).default(''),
+        name: z.string().max(500).default(''),
         points: z.union([z.string(), z.number()]),
         scoring: z.enum(['MIN', 'SUM']).default('MIN'),
         tests: z.array(z.string()).min(1, 'Each subtask needs at least one test'),

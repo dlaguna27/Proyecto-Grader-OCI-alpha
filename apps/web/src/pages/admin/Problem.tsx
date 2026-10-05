@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { cn, fmtTime, score } from '@/lib/utils';
-import { Markdown } from '../Problem';
+import { InlineMarkdown, Markdown } from '../Problem';
 import type { ProblemType } from '@/lib/types';
 
 interface AdminProblem {
@@ -338,8 +338,8 @@ function SubtasksEditor({ p }: { p: AdminProblem }) {
           <div key={s.key} className="rounded-lg border p-3">
             <div className="flex flex-wrap items-end gap-2">
               <div className="w-8 pb-2 text-center font-semibold">{i + 1}</div>
-              <Field label="Name" className="min-w-[160px] flex-1">
-                <Input value={s.name} onChange={(e) => update(i, { name: e.target.value })} placeholder="e.g. N ≤ 1000" />
+              <Field label="Description (Markdown, LaTeX with $…$)" className="min-w-[160px] flex-1">
+                <Input value={s.name} onChange={(e) => update(i, { name: e.target.value })} placeholder="e.g. $N \le 1000$" />
               </Field>
               <Field label="Points" className="w-28">
                 <Input value={s.points} inputMode="decimal" onChange={(e) => update(i, { points: e.target.value })} />
@@ -371,6 +371,11 @@ function SubtasksEditor({ p }: { p: AdminProblem }) {
                 </Button>
               </div>
             </div>
+            {s.name.includes('$') && (
+              <div className="mt-2 pl-10 text-sm text-muted-foreground">
+                Preview: <InlineMarkdown>{s.name}</InlineMarkdown>
+              </div>
+            )}
             <div className="mt-3 flex flex-wrap gap-1">
               {ts.tests.map((t) => (
                 <button

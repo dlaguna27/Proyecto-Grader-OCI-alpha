@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, LanguageName, PageHeader, Spinner, StatusBadge, VerdictBadge } from '@/components/common';
+import { InlineMarkdown } from './Problem';
 import { cn, fmtTime, score } from '@/lib/utils';
 
 type Test = SubmissionDetail['tests'][number];
@@ -128,7 +129,7 @@ export function SubmissionPage() {
                   <div className={cn('flex items-center justify-between border-b px-4 py-3', full ? 'bg-emerald-500/10' : st.scoreCenti ? 'bg-amber-500/10' : 'bg-red-500/5')}>
                     <div className="font-medium">
                       Subtask {st.ordinal}
-                      {st.name && <span className="text-muted-foreground"> · {st.name}</span>}
+                      {st.name && <span className="text-muted-foreground"> · <InlineMarkdown>{st.name}</InlineMarkdown></span>}
                       <span className="ml-2 text-xs text-muted-foreground">({st.scoring === 'MIN' ? 'all tests must pass' : 'points per test'})</span>
                     </div>
                     <div className="font-mono font-semibold">
