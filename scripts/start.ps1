@@ -29,4 +29,7 @@ if ($Cloud) {
     Write-Host '  If contestants cannot connect, allow the port in Windows Firewall:' -ForegroundColor DarkGray
     Write-Host "  New-NetFirewallRule -DisplayName 'NOI CMS' -Direction Inbound -Protocol TCP -LocalPort $port -Action Allow" -ForegroundColor DarkGray
 }
-Write-Host "  Admin login:   $($envMap['ADMIN_USERNAME'])"
+Write-Host ''
+Write-Host "  Admin user:     $($envMap['ADMIN_USERNAME'])"
+Write-Host "  Admin password: $($envMap['ADMIN_PASSWORD'])"
+Write-Host '  (from .env; only used to create the admin account on first start - if you changed it on the website, use that one)' -ForegroundColor DarkGray
