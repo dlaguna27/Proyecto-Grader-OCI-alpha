@@ -4,7 +4,7 @@ import type { MultipartFile } from '@fastify/multipart';
 import { createWriteStream, promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { z } from 'zod';
-import { formatScore, parseScore, LANGUAGES } from '@noi/shared';
+import { assignBalloonColors, BALLOON_HEX_RE, formatScore, parseScore, LANGUAGES } from '@noi/shared';
 import { adminOnly, generatePassword, hashPassword, requireAdmin } from '../auth.js';
 import { config } from '../config.js';
 import { prisma } from '../db.js';
@@ -41,6 +41,7 @@ const ContestBody = z.object({
   languages: z.array(z.enum(LANGUAGES)).min(1).optional(),
   visible: z.boolean().optional(),
   publicScoreboard: z.boolean().optional(),
+  balloonPalette: z.enum(['ICPC', 'CUSTOM']).optional(),
 });
 
 const ProblemBody = z.object({
@@ -51,6 +52,7 @@ const ProblemBody = z.object({
   timeLimitMs: z.number().int().min(100).max(60_000).optional(),
   memoryLimitMb: z.number().int().min(16).max(4096).optional(),
   scorePrecision: z.number().int().min(0).max(2).optional(),
+  balloonColor: z.string().regex(BALLOON_HEX_RE, 'Use a #rrggbb color').nullable().optional(),
   checkerKind: z.enum(['TOKENS', 'FLOAT', 'CUSTOM']).optional(),
   checkerEpsilon: z.number().positive().max(1).nullable().optional(),
   statementMd: z.string().max(200_000).optional(),
@@ -197,6 +199,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       },
     });
     if (!c) throw new HttpError(404, 'Contest not found');
+    const colors = assignBalloonColors(c.balloonPalette, c.problems);
     return {
       ...c,
       problems: c.problems.map((p) => ({
@@ -208,6 +211,8 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         timeLimitMs: p.timeLimitMs,
         memoryLimitMb: p.memoryLimitMb,
         scorePrecision: p.scorePrecision,
+        balloonColor: p.balloonColor,
+        color: colors.get(p.id)!,
         testCount: p.activeTestSet?._count.tests ?? 0,
         maxScoreCenti: p.activeTestSet?.subtasks.reduce((a, s) => a + s.pointsCenti, 0) ?? null,
       })),
@@ -297,11 +302,16 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     const p = await prisma.problem.findUnique({
       where: { id: req.params.pid },
       include: {
-        contest: { select: { id: true, name: true, scoringMode: true } },
+        contest: { select: { id: true, name: true, scoringMode: true, balloonPalette: true } },
         testSets: { orderBy: { createdAt: 'desc' }, include: { _count: { select: { tests: true, judgements: true } } } },
       },
     });
     if (!p) throw new HttpError(404, 'Problem not found');
+    const siblings = await prisma.problem.findMany({
+      where: { contestId: p.contestId },
+      orderBy: [{ ordinal: 'asc' }, { code: 'asc' }],
+      select: { id: true, balloonColor: true },
+    });
     const active = p.activeTestSetId
       ? await prisma.testSet.findUnique({
           where: { id: p.activeTestSetId },
@@ -313,6 +323,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       : null;
     return {
       ...p,
+      color: assignBalloonColors(p.contest.balloonPalette, siblings).get(p.id)!,
       activeTestSet: active && {
         id: active.id,
         createdAt: active.createdAt,

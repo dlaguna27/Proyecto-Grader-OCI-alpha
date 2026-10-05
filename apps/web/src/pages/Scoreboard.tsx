@@ -10,13 +10,7 @@ import { Countdown, ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { cn, fmtClock, score } from '@/lib/utils';
 import { useLiveUpdates } from '@/lib/events';
 import { ScoreboardTabs } from './RankingHistory';
-
-export function ioiCellClass(v: number, max: number | null) {
-  if (!max) return '';
-  if (v >= max) return 'bg-emerald-500/20 text-emerald-800 dark:text-emerald-300';
-  if (v > 0) return 'bg-amber-500/15';
-  return '';
-}
+import { Balloon, ioiCellStyle } from '@/components/Balloon';
 
 export function ScoreboardPage({ standalone }: { standalone?: boolean }) {
   const { cid } = useParams();
@@ -70,7 +64,10 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
               <TH>Team</TH>
               {b.problems.map((p) => (
                 <TH key={p.id} className="text-center" title={p.title}>
-                  {p.code}
+                  <div className="flex flex-col items-center gap-0.5 py-1">
+                    <Balloon color={p.color} />
+                    <span>{p.code}</span>
+                  </div>
                 </TH>
               ))}
               {ioi ? <TH className="text-right">Total</TH> : <><TH className="text-center">Solved</TH><TH className="text-right">Penalty</TH></>}
@@ -88,7 +85,7 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
                   if (ioi) {
                     const c = r.ioi![p.id];
                     return (
-                      <TD key={p.id} className={cn('text-center font-mono', ioiCellClass(c.scoreCenti, p.maxScoreCenti))}>
+                      <TD key={p.id} className="text-center font-mono" style={ioiCellStyle(c.scoreCenti, p.maxScoreCenti, p.color)}>
                         {c.attempts > 0 ? score(c.scoreCenti, p.scorePrecision) : <span className="text-muted-foreground">·</span>}
                         {c.pending > 0 && <span className="ml-1 text-xs text-muted-foreground">?</span>}
                       </TD>
@@ -105,7 +102,9 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
                     >
                       {c.solved ? (
                         <>
-                          <div className="font-semibold">+{c.rejected || ''}</div>
+                          <div className="flex items-center justify-center gap-1 font-semibold">
+                            <Balloon color={p.color} className="h-4" />+{c.rejected || ''}
+                          </div>
                           <div>{c.solveMinute}</div>
                         </>
                       ) : c.pending ? (

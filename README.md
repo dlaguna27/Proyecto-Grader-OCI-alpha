@@ -31,7 +31,7 @@ Linux/macOS: `cp .env.example .env`, edit the passwords, then `docker compose up
 ## Running a contest
 
 1. **Users** → *Import CSV* (`username,password,displayName,members,organization,region`). One account per team or individual — one computer each. Empty passwords are generated; print the credential cards.
-2. **Contests** → *New contest*, choose **IOI** or **ICPC**. IOI defaults to 50 submissions per task; ICPC is unlimited. Set the freeze time if you want one.
+2. **Contests** → *New contest*, choose **IOI** or **ICPC**. IOI defaults to 50 submissions per task; ICPC is unlimited. Set the freeze time if you want one. *Balloon colors*: the ICPC preset (A white, B black, C red, D dark red, E yellow, …) or a custom color per problem (problem *Settings*).
 3. **Participants** → *Add all teams*. Late arrival? Give that team a start delay or extra time.
 4. **Problems** → *Add problem* (Batch, Output-only or Interactive), then:
    - *Tests*: upload a zip with `NAME.in` + `NAME.out` (or `.ans`). Names containing `sample`/`example` are shown to contestants.
@@ -42,6 +42,8 @@ Linux/macOS: `cp .env.example .env`, edit the passwords, then `docker compose up
 6. After the contest: **Results CSV**, and `.\scripts\backup.ps1`.
 
 The projector scoreboard is `http://SERVER/board/<contest id>` (the *Scoreboard* button). It needs no login when the contest's scoreboard is public; after the freeze it shows the frozen standings.
+
+Each problem shows its balloon color on the problem list and scoreboard. ICPC: solved cells show the balloon. IOI: the cell is filled with the problem's color, faint for low scores and full color at the problem's maximum.
 
 *Ranking history* (`/board/<contest id>/history`, also a tab next to the scoreboard) charts every team's position at each minute of the contest. It follows the same visibility rules as the scoreboard: while frozen, the public chart stops at the freeze.
 

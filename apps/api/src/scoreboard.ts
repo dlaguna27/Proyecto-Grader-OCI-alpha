@@ -1,4 +1,5 @@
 import {
+  assignBalloonColors,
   assignRanks,
   compareIcpcTotals,
   icpcProblemState,
@@ -13,6 +14,7 @@ import { participantWindow } from './contest.js';
 import { prisma } from './db.js';
 
 export interface BoardProblem {
+  color: string;
   id: string;
   code: string;
   title: string;
@@ -133,8 +135,10 @@ async function computeScoreboard(contestId: string, opts: { includeHidden: boole
     list.push(s);
   }
 
+  const colors = assignBalloonColors(contest.balloonPalette, problems);
   const boardProblems: BoardProblem[] = problems.map((p) => ({
     id: p.id,
+    color: colors.get(p.id)!,
     code: p.code,
     title: p.title,
     scorePrecision: p.scorePrecision,

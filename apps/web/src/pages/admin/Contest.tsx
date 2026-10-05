@@ -16,6 +16,8 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { fmtTime, fromLocalInput, score, toLocalInput } from '@/lib/utils';
 import type { Announcement, ProblemType } from '@/lib/types';
+import { ICPC_BALLOON_COLORS } from '@noi/shared';
+import { Balloon } from '@/components/Balloon';
 
 interface AdminContest {
   id: string;
@@ -32,9 +34,10 @@ interface AdminContest {
   languages: string[];
   visible: boolean;
   publicScoreboard: boolean;
+  balloonPalette: 'ICPC' | 'CUSTOM';
   _count: { participants: number; submissions: number };
   announcements: Announcement[];
-  problems: { id: string; code: string; title: string; type: ProblemType; ordinal: number; timeLimitMs: number; memoryLimitMb: number; scorePrecision: number; testCount: number; maxScoreCenti: number | null }[];
+  problems: { id: string; code: string; title: string; type: ProblemType; ordinal: number; timeLimitMs: number; memoryLimitMb: number; scorePrecision: number; balloonColor: string | null; color: string; testCount: number; maxScoreCenti: number | null }[];
 }
 
 const TYPE_LABEL = { BATCH: 'Batch', OUTPUT_ONLY: 'Output-only', INTERACTIVE: 'Interactive' } as const;
@@ -144,7 +147,12 @@ function ProblemsTab({ c }: { c: AdminContest }) {
         <TBody>
           {c.problems.map((p) => (
             <TR key={p.id}>
-              <TD className="font-mono font-semibold">{p.code}</TD>
+              <TD className="font-mono font-semibold">
+                <span className="flex items-center gap-2">
+                  <Balloon color={p.color} />
+                  {p.code}
+                </span>
+              </TD>
               <TD>
                 <Link className="text-primary hover:underline" to={`/admin/problems/${p.id}`}>
                   {p.title}
@@ -216,6 +224,7 @@ function SettingsTab({ c }: { c: AdminContest }) {
         languages: f.languages,
         visible: f.visible,
         publicScoreboard: f.publicScoreboard,
+        balloonPalette: f.balloonPalette,
       });
       toast.success('Saved');
       qc.invalidateQueries({ queryKey: ['admin-contest', c.id] });
@@ -265,6 +274,19 @@ function SettingsTab({ c }: { c: AdminContest }) {
             <Input type="number" min={0} value={f.penaltyMinutes} onChange={(e) => set('penaltyMinutes', Number(e.target.value))} />
           </Field>
         )}
+        <Field
+          label="Balloon colors"
+          hint={
+            f.balloonPalette === 'ICPC'
+              ? `Assigned by problem order: ${ICPC_BALLOON_COLORS.slice(0, 6).map((x) => x.name).join(', ')}, …`
+              : "Pick each problem's color in its Settings; problems without one use the preset color."
+          }
+        >
+          <NativeSelect value={f.balloonPalette} onChange={(e) => set('balloonPalette', e.target.value as AdminContest['balloonPalette'])}>
+            <option value="ICPC">ICPC preset (white, black, red, dark red, …)</option>
+            <option value="CUSTOM">Custom color per problem</option>
+          </NativeSelect>
+        </Field>
         <div className="space-y-3">
           <label className="flex items-center gap-3 text-sm">
             <Switch checked={limitOn} onCheckedChange={setLimitOn} /> Limit submissions per task

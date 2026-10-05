@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Balloon } from '@/components/Balloon';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
@@ -75,6 +76,7 @@ export function ProblemPage() {
         <PageHeader
           title={
             <span>
+              <Balloon color={p.color} className="mr-2 h-7 align-[-0.2em]" />
               <span className="font-mono text-muted-foreground">{p.code}</span> {p.title}
             </span>
           }

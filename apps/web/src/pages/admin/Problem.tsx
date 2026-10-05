@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowDown, ArrowUp, Download, Plus, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { precisionStep } from '@noi/shared';
+import { ICPC_BALLOON_COLORS, precisionStep } from '@noi/shared';
+import { Balloon } from '@/components/Balloon';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +29,8 @@ interface AdminProblem {
   timeLimitMs: number;
   memoryLimitMb: number;
   scorePrecision: number;
+  balloonColor: string | null;
+  color: string;
   checkerKind: 'TOKENS' | 'FLOAT' | 'CUSTOM';
   checkerEpsilon: number | null;
   checkerSha: string | null;
@@ -37,7 +40,7 @@ interface AdminProblem {
   statementMd: string;
   attachmentSha: string | null;
   activeTestSetId: string | null;
-  contest: { id: string; name: string; scoringMode: 'IOI' | 'ICPC' };
+  contest: { id: string; name: string; scoringMode: 'IOI' | 'ICPC'; balloonPalette: 'ICPC' | 'CUSTOM' };
   testSets: { id: string; createdAt: string; note: string; _count: { tests: number; judgements: number } }[];
   activeTestSet: {
     id: string;
@@ -64,6 +67,7 @@ export function AdminProblemPage() {
       <PageHeader
         title={
           <span>
+            <Balloon color={p.color} className="mr-2 h-7 align-[-0.2em]" />
             <span className="font-mono text-muted-foreground">{p.code}</span> {p.title}
           </span>
         }
@@ -425,6 +429,7 @@ function SettingsCard({ p }: { p: AdminProblem }) {
         timeLimitMs: f.timeLimitMs,
         memoryLimitMb: f.memoryLimitMb,
         scorePrecision: f.scorePrecision,
+        balloonColor: f.balloonColor,
         checkerKind: f.checkerKind,
         checkerEpsilon: f.checkerKind === 'FLOAT' ? f.checkerEpsilon ?? 1e-6 : f.checkerEpsilon,
       });
@@ -471,6 +476,34 @@ function SettingsCard({ p }: { p: AdminProblem }) {
         <Field label="Display order">
           <Input type="number" value={f.ordinal} onChange={(e) => set('ordinal', Number(e.target.value))} />
         </Field>
+        {p.contest.balloonPalette === 'CUSTOM' ? (
+          <Field label="Balloon color" hint="Pick a preset or any color." className="md:col-span-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <input
+                type="color"
+                className="h-9 w-12 cursor-pointer rounded border bg-transparent p-0.5"
+                value={f.balloonColor ?? p.color}
+                onChange={(e) => set('balloonColor', e.target.value)}
+              />
+              {ICPC_BALLOON_COLORS.map((x) => (
+                <button
+                  key={x.hex}
+                  type="button"
+                  title={x.name}
+                  onClick={() => set('balloonColor', x.hex)}
+                  className={cn('h-6 w-6 rounded-full border', (f.balloonColor ?? p.color) === x.hex && 'ring-2 ring-primary ring-offset-1')}
+                  style={{ backgroundColor: x.hex }}
+                />
+              ))}
+            </div>
+          </Field>
+        ) : (
+          <Field label="Balloon color" hint="ICPC preset, by problem order. Choose custom colors in the contest settings." className="md:col-span-2">
+            <div className="flex h-9 items-center gap-2 text-sm">
+              <Balloon color={p.color} /> {ICPC_BALLOON_COLORS.find((x) => x.hex === p.color)?.name}
+            </div>
+          </Field>
+        )}
         {p.type !== 'INTERACTIVE' && (
           <>
             <Field label="Output checking">
