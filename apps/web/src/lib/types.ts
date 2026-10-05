@@ -58,6 +58,7 @@ export interface ContestDetail extends ContestSummary {
     title: string;
     type: ProblemType;
     scorePrecision: number;
+    color: string;
     maxScoreCenti: number | null;
     submissions: number;
     my: IoiCell | IcpcCell | null;
@@ -73,6 +74,7 @@ export interface ProblemDetail {
   timeLimitMs: number;
   memoryLimitMb: number;
   scorePrecision: number;
+  color: string;
   statementMd: string;
   hasStatementFile: boolean;
   statementType: string | null;
@@ -140,7 +142,7 @@ export interface Board {
   frozen: boolean;
   freezeAt: string | null;
   generatedAt: string;
-  problems: { id: string; code: string; title: string; scorePrecision: number; maxScoreCenti: number | null }[];
+  problems: { id: string; code: string; title: string; color: string; scorePrecision: number; maxScoreCenti: number | null }[];
   rows: {
     rank: number;
     userId: string;

@@ -9,6 +9,7 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { Countdown, ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { fmtTime, score } from '@/lib/utils';
 import { useNow } from '@/lib/auth';
+import { Balloon } from '@/components/Balloon';
 
 const TYPE_LABEL = { BATCH: 'Batch', OUTPUT_ONLY: 'Output-only', INTERACTIVE: 'Interactive' } as const;
 
@@ -62,7 +63,12 @@ export function ContestHomePage() {
                   if (ioi && my) total += my.scoreCenti;
                   return (
                     <TR key={p.id}>
-                      <TD className="font-mono font-semibold">{p.code}</TD>
+                      <TD className="font-mono font-semibold">
+                        <span className="flex items-center gap-2">
+                          <Balloon color={p.color} />
+                          {p.code}
+                        </span>
+                      </TD>
                       <TD>
                         <Link className="font-medium text-primary hover:underline" to={`/c/${cid}/p/${p.id}`}>
                           {p.title}

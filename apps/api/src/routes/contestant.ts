@@ -5,7 +5,7 @@ import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { createWriteStream } from 'node:fs';
-import { LANGUAGES, type Language } from '@noi/shared';
+import { assignBalloonColors, LANGUAGES, type Language } from '@noi/shared';
 import { requireUser, type AuthUser } from '../auth.js';
 import { config } from '../config.js';
 import { participantWindow, phaseOf } from '../contest.js';
@@ -103,6 +103,7 @@ export async function contestantRoutes(app: FastifyInstance): Promise<void> {
       myScores = (row?.ioi ?? row?.icpc ?? {}) as Record<string, unknown>;
     }
     const announcements = await prisma.announcement.findMany({ where: { contestId: a.contest.id }, orderBy: { createdAt: 'desc' } });
+    const colors = assignBalloonColors(a.contest.balloonPalette, problems);
     return {
       ...contestSummary(a),
       serverTime: new Date().toISOString(),
@@ -112,6 +113,7 @@ export async function contestantRoutes(app: FastifyInstance): Promise<void> {
         title: p.title,
         type: p.type,
         scorePrecision: p.scorePrecision,
+        color: colors.get(p.id)!,
         maxScoreCenti: p.activeTestSet?.subtasks.reduce((s, x) => s + x.pointsCenti, 0) ?? null,
         submissions: countBy.get(p.id) ?? 0,
         my: myScores[p.id] ?? null,
@@ -141,6 +143,11 @@ export async function contestantRoutes(app: FastifyInstance): Promise<void> {
       });
     }
     const used = await countedSubmissions(prisma, contest.id, user.id, p.id);
+    const siblings = await prisma.problem.findMany({
+      where: { contestId: contest.id },
+      orderBy: [{ ordinal: 'asc' }, { code: 'asc' }],
+      select: { id: true, balloonColor: true },
+    });
     return {
       id: p.id,
       code: p.code,
@@ -149,6 +156,7 @@ export async function contestantRoutes(app: FastifyInstance): Promise<void> {
       timeLimitMs: p.timeLimitMs,
       memoryLimitMb: p.memoryLimitMb,
       scorePrecision: p.scorePrecision,
+      color: assignBalloonColors(contest.balloonPalette, siblings).get(p.id)!,
       statementMd: p.statementMd,
       hasStatementFile: !!p.statementSha,
       statementType: p.statementType,

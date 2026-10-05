@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ErrorBox, Spinner } from '@/components/common';
 import { cn, score } from '@/lib/utils';
-import { ioiCellClass } from '../Scoreboard';
+import { Balloon, ioiCellStyle } from '@/components/Balloon';
 
 type Cell = IoiCell | IcpcCell;
 type Start = 'FROZEN' | 'ZERO';
@@ -166,7 +166,12 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
         <div className="grid items-center gap-2 px-6 pb-2 text-sm font-medium text-muted-foreground" style={{ gridTemplateColumns: cols }}>
           <div className="text-center">Rank</div>
           <div>Team</div>
-          {problems.map((p) => <div key={p.id} className="text-center" title={p.title}>{p.code}</div>)}
+          {problems.map((p) => (
+            <div key={p.id} className="flex flex-col items-center" title={p.title}>
+              <Balloon color={p.color} className="h-6" />
+              {p.code}
+            </div>
+          ))}
           {ioi ? <div className="text-right">Total</div> : <><div className="text-center">Solved</div><div className="text-right">Penalty</div></>}
         </div>
       </div>
@@ -209,9 +214,10 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
                 return (
                   <div
                     key={pr.id + (flash ? `:${i}` : '')}
-                    className={cn('flex h-10 items-center justify-center rounded-md font-mono', cellClass(c, ioi, pr.maxScoreCenti), flash && 'animate-in zoom-in-50 ring-4 ring-amber-400 duration-500')}
+                    className={cn('flex h-10 items-center justify-center rounded-md font-mono', cellClass(c, ioi), flash && 'animate-in zoom-in-50 ring-4 ring-amber-400 duration-500')}
+                    style={ioi ? cellStyle(c as IoiCell, pr.maxScoreCenti, pr.color) : undefined}
                   >
-                    {renderCell(c, ioi, pr.scorePrecision)}
+                    {renderCell(c, ioi, pr.scorePrecision, pr.color)}
                   </div>
                 );
               })}
@@ -231,16 +237,20 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
   );
 }
 
-function cellClass(c: Cell, ioi: boolean, max: number | null): string {
+function cellClass(c: Cell, ioi: boolean): string {
   if (ioi) {
     const x = c as IoiCell;
-    return x.pending > 0 && x.scoreCenti === 0 ? 'bg-sky-500/20' : ioiCellClass(x.scoreCenti, max);
+    return x.pending > 0 && x.scoreCenti === 0 ? 'bg-sky-500/20' : '';
   }
   const x = c as IcpcCell;
   return x.solved ? 'bg-emerald-500/25' : x.pending ? 'bg-sky-500/20' : x.rejected ? 'bg-red-500/15' : '';
 }
 
-function renderCell(c: Cell, ioi: boolean, precision: number) {
+function cellStyle(c: IoiCell, max: number | null, color: string) {
+  return c.pending > 0 && c.scoreCenti === 0 ? undefined : ioiCellStyle(c.scoreCenti, max, color);
+}
+
+function renderCell(c: Cell, ioi: boolean, precision: number, color: string) {
   if (ioi) {
     const x = c as IoiCell;
     if (x.attempts === 0 && x.pending === 0) return <span className="text-muted-foreground">·</span>;
@@ -252,7 +262,7 @@ function renderCell(c: Cell, ioi: boolean, precision: number) {
     );
   }
   const x = c as IcpcCell;
-  if (x.solved) return <span className="text-base font-semibold">+{x.rejected || ''} <span className="text-xs font-normal">{x.solveMinute}</span></span>;
+  if (x.solved) return <span className="flex items-center gap-1 text-base font-semibold"><Balloon color={color} />+{x.rejected || ''} <span className="text-xs font-normal">{x.solveMinute}</span></span>;
   if (x.pending) return <span className="text-base">?{x.rejected ? ` -${x.rejected}` : ''}</span>;
   if (x.rejected) return <span className="text-base font-semibold">-{x.rejected}</span>;
   return '';

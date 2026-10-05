@@ -23,6 +23,11 @@ enum IoiTaskScoreRule {
   BEST_SUBMISSION
 }
 
+enum BalloonPalette {
+  ICPC
+  CUSTOM
+}
+
 enum ProblemType {
   BATCH
   OUTPUT_ONLY
@@ -105,6 +110,8 @@ model Contest {
   languages             String[]         @default(["cpp", "python"])
   visible               Boolean          @default(true)
   publicScoreboard      Boolean          @default(true)
+  /// ICPC = preset colors by problem order; CUSTOM = Problem.balloonColor.
+  balloonPalette        BalloonPalette   @default(ICPC)
   createdAt             DateTime         @default(now())
 
   problems      Problem[]
@@ -139,6 +146,8 @@ model Problem {
   memoryLimitMb  Int         @default(256)
   /// Number of decimals used for this problem's scores (0..2).
   scorePrecision Int         @default(0)
+  /// "#rrggbb"; used when the contest's balloonPalette is CUSTOM.
+  balloonColor   String?
   checkerKind    CheckerKind @default(TOKENS)
   checkerEpsilon Float?
   checkerSha     String?
