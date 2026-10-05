@@ -28,6 +28,15 @@ export function Markdown({ children }: { children: string }) {
   );
 }
 
+/** Single-line Markdown + LaTeX (e.g. subtask descriptions like `$N \le 10^5$`). */
+export function InlineMarkdown({ children }: { children: string }) {
+  return (
+    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]} components={{ p: ({ children }) => <>{children}</> }}>
+      {children}
+    </ReactMarkdown>
+  );
+}
+
 function SampleBlock({ title, text }: { title: string; text: string }) {
   return (
     <div className="min-w-0 flex-1">
@@ -132,7 +141,7 @@ export function ProblemPage() {
                     {p.subtasks.map((s) => (
                       <TR key={s.id}>
                         <TD>{s.ordinal}</TD>
-                        <TD>{s.name}</TD>
+                        <TD><InlineMarkdown>{s.name}</InlineMarkdown></TD>
                         <TD className="text-right font-mono">{score(s.pointsCenti, p.scorePrecision)}</TD>
                       </TR>
                     ))}
