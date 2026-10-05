@@ -1,0 +1,14 @@
+# Cloud override: HTTPS with an automatic certificate.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.cloud.yml up -d
+# Requires SITE_ADDRESS=your.domain and a DNS A record pointing to the server.
+services:
+  api:
+    environment:
+      COOKIE_SECURE: "1"
+  web:
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?Set SITE_ADDRESS to your domain in .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"

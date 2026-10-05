@@ -1,0 +1,22 @@
+{
+  "name": "noi-cms",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @noi/shared && npm run build -w @noi/worker -w @noi/api -w @noi/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "typescript": "~5.6.3",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 45%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 210 40% 94%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214 32% 89%;
+    --input: 214 32% 85%;
+    --ring: 221 83% 45%;
+    --radius: 0.6rem;
+  }
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+    --card: 222 40% 10%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 40% 10%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 19%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 45%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 20%;
+    --input: 217 33% 24%;
+    --ring: 224 76% 60%;
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'tnum' 1;
+  }
+}
+
+.prose-statement {
+  @apply leading-7 text-[15px];
+}
+.prose-statement h1 { @apply text-2xl font-semibold mt-6 mb-3; }
+.prose-statement h2 { @apply text-xl font-semibold mt-6 mb-2; }
+.prose-statement h3 { @apply text-lg font-semibold mt-4 mb-2; }
+.prose-statement p { @apply my-3; }
+.prose-statement ul { @apply list-disc pl-6 my-3; }
+.prose-statement ol { @apply list-decimal pl-6 my-3; }
+.prose-statement code { @apply font-mono text-[13px] bg-muted px-1 py-0.5 rounded; }
+.prose-statement pre { @apply bg-muted p-3 rounded-md overflow-x-auto my-3; }
+.prose-statement pre code { @apply bg-transparent p-0; }
+.prose-statement table { @apply border-collapse my-3; }
+.prose-statement th, .prose-statement td { @apply border px-3 py-1; }
