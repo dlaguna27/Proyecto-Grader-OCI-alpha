@@ -1,0 +1,46 @@
+{
+	# Onsite/offline: SITE_ADDRESS=":80" (plain HTTP on the LAN, no certificates needed).
+	# Cloud: SITE_ADDRESS="contest.example.org" gets an automatic Let's Encrypt certificate.
+	email {$ACME_EMAIL:admin@localhost}
+}
+
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	@api path /api/* /internal/*
+	handle @api {
+		# Worker-only endpoints are never exposed through the proxy.
+		@internal path /internal/*
+		respond @internal 404
+
+		reverse_proxy api:3000 {
+			# Server-sent events must not be buffered.
+			flush_interval -1
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	handle {
+		root * /srv
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options SAMEORIGIN
+		Referrer-Policy same-origin
+		-Server
+	}
+
+	request_body {
+		max_size 1100MB
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}
