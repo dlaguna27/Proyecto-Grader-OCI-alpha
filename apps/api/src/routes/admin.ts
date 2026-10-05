@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { JudgementStatus, Prisma } from '@prisma/client';
 import type { MultipartFile } from '@fastify/multipart';
 import { createWriteStream, promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
@@ -514,7 +515,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         ...(q.contestId ? { contestId: q.contestId } : {}),
         ...(q.problemId ? { problemId: q.problemId } : {}),
         ...(q.userId ? { userId: q.userId } : {}),
-        ...(q.status ? { judgements: { some: { active: true, OR: [{ status: q.status as never }, { verdict: q.status }] } } } : {}),
+        ...(q.status ? { judgements: { some: { active: true, OR: statusOrVerdict([q.status]) } } } : {}),
       };
       const take = Math.min(Number(q.take ?? 100) || 100, 500);
       const skip = Number(q.skip ?? 0) || 0;
@@ -553,7 +554,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         contestId: body.contestId,
         ...(body.problemId ? { problemId: body.problemId } : {}),
         ...(body.userId ? { userId: body.userId } : {}),
-        ...(body.onlyStatus?.length ? { judgements: { some: { active: true, OR: [{ status: { in: body.onlyStatus as never[] } }, { verdict: { in: body.onlyStatus } }] } } } : {}),
+        ...(body.onlyStatus?.length ? { judgements: { some: { active: true, OR: statusOrVerdict(body.onlyStatus) } } } : {}),
       },
       orderBy: { submittedAt: 'asc' },
       select: { id: true },
@@ -622,4 +623,10 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.get('/api/admin/audit', async () => prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 300 }));
+}
+
+/** Filter values may be a judgement status (QUEUED, DONE, …) or a verdict (WA, TLE, …). */
+function statusOrVerdict(values: string[]): Prisma.JudgementWhereInput[] {
+  const statuses = values.filter((v): v is JudgementStatus => v in JudgementStatus);
+  return [{ verdict: { in: values } }, ...(statuses.length ? [{ status: { in: statuses } }] : [])];
 }
