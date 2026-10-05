@@ -113,6 +113,7 @@ All data lives in Docker volumes (`noi-cms_pgdata`, `noi-cms_filedata`). `docker
 | `WORKER_REPLICAS` | `1` | Worker containers |
 | `SINGLE_SESSION` | `1` | A new login logs out the team's other session |
 | `SUBMIT_PER_MINUTE` | `6` | Anti-flood limit per team |
+| `LOGIN_PER_MINUTE` | `100` | Login attempts per minute from one IP address; raise it if more teams than this share one public IP (e.g. a school lab in cloud mode) |
 
 ## Security notes
 

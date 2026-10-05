@@ -21,6 +21,8 @@ export const config = {
   adminPassword: process.env.ADMIN_PASSWORD ?? '',
   /** Max submissions per contestant per minute (anti-flood). */
   submitPerMinute: int('SUBMIT_PER_MINUTE', 6),
+  /** Max login attempts per IP address per minute (slows password guessing). */
+  loginPerMinute: int('LOGIN_PER_MINUTE', 100),
   maxSourceBytes: int('MAX_SOURCE_KB', 256) * 1024,
   maxOutputBytes: int('MAX_OUTPUT_MB', 64) * 1024 * 1024,
   maxZipBytes: int('MAX_ZIP_MB', 1024) * 1024 * 1024,
