@@ -43,6 +43,10 @@ Linux/macOS: `cp .env.example .env`, edit the passwords, then `docker compose up
 
 The projector scoreboard is `http://SERVER/board/<contest id>` (the *Scoreboard* button). It needs no login when the contest's scoreboard is public; after the freeze it shows the frozen standings.
 
+*Ranking history* (`/board/<contest id>/history`, also a tab next to the scoreboard) charts every team's position at each minute of the contest. It follows the same visibility rules as the scoreboard: while frozen, the public chart stops at the freeze.
+
+*Score revealer* (admin only, button on the contest page) is a full-screen closing-ceremony view that reveals the final ranking from last place to first, one key press per step. Start it from the frozen scoreboard (reveals the hidden results, ICPC-resolver style) or from zero (every team starts at 0).
+
 ### Problem formats
 
 | Type | Contestant submits | Judged by |

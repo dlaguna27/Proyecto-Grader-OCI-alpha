@@ -39,6 +39,8 @@ export interface IcpcCell {
   pending: boolean;
   pendingCount: number;
   firstSolve: boolean;
+  /** Time of the first AC since the team's start (ms). */
+  acElapsedMs: number | null;
 }
 
 export interface Announcement {
@@ -153,4 +155,22 @@ export interface Board {
     penalty?: number;
     icpc?: Record<string, IcpcCell>;
   }[];
+}
+
+export interface RankHistory {
+  contest: { id: string; name: string; scoringMode: Mode; startsAt: string; endsAt: string };
+  mode: Mode;
+  frozen: boolean;
+  durationMinutes: number;
+  lastMinute: number;
+  freezeMinute: number | null;
+  scorePrecision: number;
+  generatedAt: string;
+  series: { userId: string; username: string; displayName: string; organization: string; ranks: number[]; scores: number[]; penalties?: number[] }[];
+}
+
+export interface RevealData {
+  contest: { id: string; name: string; scoringMode: Mode; freezeAt: string | null };
+  before: Omit<Board, 'contest'>;
+  after: Omit<Board, 'contest'>;
 }

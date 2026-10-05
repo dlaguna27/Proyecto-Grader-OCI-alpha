@@ -212,6 +212,21 @@ async function main() {
   const fullCell = full.rows.find((r) => r.username === `team_${tag}_2`).icpc[pa.id];
   check('freeze: public board shows pending, admin board shows solved', pub.frozen && pubCell.pending && !pubCell.solved && fullCell.solved, JSON.stringify({ pubCell, fullCell }));
 
+  const histPub = await t2.get(`/api/contests/${icpc.id}/history`);
+  const histFull = await admin.get(`/api/contests/${icpc.id}/history`);
+  const hs = histFull.series.find((x) => x.username === `team_${tag}_1`);
+  check(
+    'rank history: one point per minute, capped at the freeze for teams',
+    hs && hs.ranks.length === histFull.lastMinute + 1 && hs.scores.at(-1) === 1 && histPub.frozen && histPub.lastMinute <= histFull.lastMinute,
+    JSON.stringify({ lastMinute: histFull.lastMinute, pub: histPub.lastMinute, hs }),
+  );
+  const reveal = await admin.get(`/api/admin/contests/${icpc.id}/reveal`);
+  const rb = reveal.before.rows.find((r) => r.username === `team_${tag}_2`).icpc[pa.id];
+  const ra = reveal.after.rows.find((r) => r.username === `team_${tag}_2`).icpc[pa.id];
+  check('reveal: before = frozen (pending), after = solved', rb.pending && !rb.solved && ra.solved && typeof ra.acElapsedMs === 'number', JSON.stringify({ rb, ra }));
+  const denied = await t2.get(`/api/admin/contests/${icpc.id}/reveal`).then(() => null, (e) => e.message);
+  check('reveal is admin-only', /40[13]/.test(denied ?? ''), denied);
+
   // Single session per contestant account
   const again = new Client();
   await again.post('/api/auth/login', { username: `team_${tag}_1`, password: 'pass1234' });

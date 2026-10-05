@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, ExternalLink, Plus, Trash2, UserPlus } from 'lucide-react';
+import { ChartLine, Download, ExternalLink, Plus, Sparkles, Trash2, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,16 @@ export function AdminContestPage() {
             <Button variant="outline" size="sm" asChild>
               <Link to={`/board/${c.id}`} target="_blank">
                 <ExternalLink /> Scoreboard
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/board/${c.id}/history`} target="_blank">
+                <ChartLine /> Ranking history
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/admin/contests/${c.id}/reveal`} target="_blank">
+                <Sparkles /> Score revealer
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>

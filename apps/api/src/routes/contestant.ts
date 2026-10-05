@@ -12,7 +12,7 @@ import { participantWindow, phaseOf } from '../contest.js';
 import { prisma } from '../db.js';
 import { bus, type BusEvent } from '../events.js';
 import { judgeSubmission } from '../judging.js';
-import { getScoreboard } from '../scoreboard.js';
+import { getRankHistory, getScoreboard } from '../scoreboard.js';
 import { putBuffer, putStream, readBlob, readBlobText, tmpPath } from '../storage.js';
 import { HttpError } from '../util.js';
 import { extractZip } from '../zip.js';
@@ -320,6 +320,14 @@ export async function contestantRoutes(app: FastifyInstance): Promise<void> {
     const isAdmin = req.user?.role === 'ADMIN';
     if (!isAdmin && (!contest.visible || !contest.publicScoreboard)) throw new HttpError(403, 'The scoreboard is not public');
     return { contest: { id: contest.id, name: contest.name, scoringMode: contest.scoringMode, startsAt: contest.startsAt, endsAt: contest.endsAt }, ...(await getScoreboard(contest.id, isAdmin)) };
+  });
+
+  app.get<{ Params: { cid: string } }>('/api/contests/:cid/history', async (req) => {
+    const contest = await prisma.contest.findUnique({ where: { id: req.params.cid } });
+    if (!contest) throw new HttpError(404, 'Contest not found');
+    const isAdmin = req.user?.role === 'ADMIN';
+    if (!isAdmin && (!contest.visible || !contest.publicScoreboard)) throw new HttpError(403, 'The scoreboard is not public');
+    return { contest: { id: contest.id, name: contest.name, scoringMode: contest.scoringMode, startsAt: contest.startsAt, endsAt: contest.endsAt }, ...(await getRankHistory(contest.id, isAdmin)) };
   });
 
   app.get<{ Params: { cid: string } }>('/api/contests/:cid/announcements', async (req) => {

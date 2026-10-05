@@ -11,7 +11,7 @@ import { prisma } from '../db.js';
 import { publish } from '../events.js';
 import { judgeSubmission, rescoreTestSet } from '../judging.js';
 import { judgeQueue, PRIORITY_REJUDGE } from '../queue.js';
-import { getScoreboard, invalidateScoreboard } from '../scoreboard.js';
+import { getRevealBoards, getScoreboard, invalidateScoreboard } from '../scoreboard.js';
 import { putStream, readBlob, tmpPath } from '../storage.js';
 import { audit, csvEscape, HttpError, parseCsv } from '../util.js';
 import { extractZip, pairTests } from '../zip.js';
@@ -599,6 +599,12 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
       failedJobs: failed.map((j) => ({ id: j.id, reason: j.failedReason, at: j.finishedOn })),
       recentErrors: recentErrors.map((j) => ({ judgementId: j.id, submissionId: j.submissionId, username: j.submission.user.username, problem: j.submission.problem.code, error: j.error, at: j.finishedAt })),
     };
+  });
+
+  app.get<{ Params: { id: string } }>('/api/admin/contests/:id/reveal', async (req) => {
+    const contest = await prisma.contest.findUnique({ where: { id: req.params.id } });
+    if (!contest) throw new HttpError(404, 'Contest not found');
+    return { contest: { id: contest.id, name: contest.name, scoringMode: contest.scoringMode, freezeAt: contest.freezeAt }, ...(await getRevealBoards(contest.id)) };
   });
 
   /* ---------------- Results export & audit ---------------- */
