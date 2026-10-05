@@ -7,7 +7,7 @@ A self-hosted contest system for the Costa Rican Olympiad in Informatics (OCI).
 - **Grading:** isolate sandboxes (the IOI/CMS sandbox) inside Docker, cgroup v2 memory/CPU/process limits, no network. Batch, output-only and interactive tasks.
 - **Scoring:** IOI subtasks (MIN / SUM, max-per-subtask across submissions, 0–2 decimal places, 50 submissions per task by default) and ICPC (accepted / rejected, penalty minutes, freeze, first-solve).
 
-The design is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+The design is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Step-by-step contest-day runbook: [docs/CONTEST-GUIDE.md](docs/CONTEST-GUIDE.md).
 
 ## Requirements
 
