@@ -12,25 +12,26 @@ import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, LanguageName, PageHeader, Spinner, StatusBadge, VerdictBadge } from '@/components/common';
 import { InlineMarkdown } from './Problem';
 import { cn, fmtTime, score } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 type Test = SubmissionDetail['tests'][number];
 
 function TestRows({ tests, admin }: { tests: Test[]; admin: boolean }) {
   return (
     <>
-      {tests.map((t) => (
-        <TR key={t.id}>
+      {tests.map((x) => (
+        <TR key={x.id}>
           <TD className="font-mono text-xs">
-            {t.name}
-            {t.isSample && <Badge variant="muted" className="ml-2">sample</Badge>}
+            {x.name}
+            {x.isSample && <Badge variant="muted" className="ml-2">{t('sample')}</Badge>}
           </TD>
           <TD>
-            <VerdictBadge verdict={t.verdict} />
+            <VerdictBadge verdict={x.verdict} />
           </TD>
-          <TD className="text-right font-mono text-xs">{t.verdict === 'PA' && t.fractionPpm !== null ? `${(t.fractionPpm / 10000).toFixed(2)}%` : ''}</TD>
-          <TD className="text-right font-mono text-xs text-muted-foreground">{t.timeMs !== null ? `${t.timeMs} ms` : ''}</TD>
-          <TD className="text-right font-mono text-xs text-muted-foreground">{t.memoryKb !== null ? `${(t.memoryKb / 1024).toFixed(1)} MB` : ''}</TD>
-          {admin && <TD className="max-w-xs truncate text-xs text-muted-foreground" title={t.message ?? ''}>{t.message}</TD>}
+          <TD className="text-right font-mono text-xs">{x.verdict === 'PA' && x.fractionPpm !== null ? `${(x.fractionPpm / 10000).toFixed(2)}%` : ''}</TD>
+          <TD className="text-right font-mono text-xs text-muted-foreground">{x.timeMs !== null ? `${x.timeMs} ms` : ''}</TD>
+          <TD className="text-right font-mono text-xs text-muted-foreground">{x.memoryKb !== null ? `${(x.memoryKb / 1024).toFixed(1)} MB` : ''}</TD>
+          {admin && <TD className="max-w-xs truncate text-xs text-muted-foreground" title={x.message ?? ''}>{x.message}</TD>}
         </TR>
       ))}
     </>
@@ -57,18 +58,18 @@ export function SubmissionPage() {
   const head = (
     <THead>
       <TR>
-        <TH>Test</TH>
-        <TH>Verdict</TH>
-        <TH className="text-right">Partial</TH>
-        <TH className="text-right">Time</TH>
-        <TH className="text-right">Memory</TH>
-        {admin && <TH>Checker message</TH>}
+        <TH>{t('Test')}</TH>
+        <TH>{t('Verdict')}</TH>
+        <TH className="text-right">{t('Partial')}</TH>
+        <TH className="text-right">{t('Time')}</TH>
+        <TH className="text-right">{t('Memory')}</TH>
+        {admin && <TH>{t('Checker message')}</TH>}
       </TR>
     </THead>
   );
   const rejudge = async () => {
     await api.post(`/api/admin/submissions/${s.id}/rejudge`);
-    toast.success('Rejudge queued');
+    toast.success(t('Rejudge queued'));
     qc.invalidateQueries({ queryKey: ['submission', sid] });
   };
   return (
@@ -76,7 +77,7 @@ export function SubmissionPage() {
       <PageHeader
         title={
           <span>
-            Submission <span className="font-mono text-muted-foreground">{s.id.slice(-8)}</span>
+            {t('Submission')} <span className="font-mono text-muted-foreground">{s.id.slice(-8)}</span>
           </span>
         }
         subtitle={
@@ -90,7 +91,7 @@ export function SubmissionPage() {
         actions={
           admin && (
             <Button variant="outline" size="sm" onClick={rejudge}>
-              <RotateCcw /> Rejudge
+              <RotateCcw /> {t('Rejudge')}
             </Button>
           )
         }
@@ -107,12 +108,12 @@ export function SubmissionPage() {
         )}
       </div>
       {s.status === 'SE' && (
-        <ErrorBox error={admin ? `System error: ${s.error ?? 'unknown'}` : 'A system error occurred while grading. The judges have been notified; this submission does not count against you.'} />
+        <ErrorBox error={admin ? `${t('System error')}: ${s.error ?? t('unknown')}` : t('A system error occurred while grading. The judges have been notified; this submission does not count against you.')} />
       )}
       {s.compileLog && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">{s.status === 'CE' ? 'Compilation error' : 'Compiler output'}</CardTitle>
+            <CardTitle className="text-base">{s.status === 'CE' ? t('Compilation error') : t('Compiler output')}</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="max-h-80 overflow-auto rounded-md bg-muted p-3 font-mono text-xs">{s.compileLog}</pre>
@@ -128,9 +129,9 @@ export function SubmissionPage() {
                 <Card key={st.id}>
                   <div className={cn('flex items-center justify-between border-b px-4 py-3', full ? 'bg-emerald-500/10' : st.scoreCenti ? 'bg-amber-500/10' : 'bg-red-500/5')}>
                     <div className="font-medium">
-                      Subtask {st.ordinal}
+                      {t('Subtask')} {st.ordinal}
                       {st.name && <span className="text-muted-foreground"> · <InlineMarkdown>{st.name}</InlineMarkdown></span>}
-                      <span className="ml-2 text-xs text-muted-foreground">({st.scoring === 'MIN' ? 'all tests must pass' : 'points per test'})</span>
+                      <span className="ml-2 text-xs text-muted-foreground">({st.scoring === 'MIN' ? t('all tests must pass') : t('points per test')})</span>
                     </div>
                     <div className="font-mono font-semibold">
                       {score(st.scoreCenti, s.scorePrecision)} / {score(st.pointsCenti, s.scorePrecision)}
@@ -147,7 +148,7 @@ export function SubmissionPage() {
             })}
           {(loose.length > 0 || !ioi) && (
             <Card>
-              <div className="border-b px-4 py-3 font-medium">{ioi ? 'Other tests (not scored)' : 'Tests'}</div>
+              <div className="border-b px-4 py-3 font-medium">{ioi ? t('Other tests (not scored)') : t('Tests')}</div>
               <Table>
                 {head}
                 <TBody>
@@ -161,7 +162,7 @@ export function SubmissionPage() {
       {s.source !== null && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Source code</CardTitle>
+            <CardTitle className="text-base">{t('Source code')}</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="max-h-[600px] overflow-auto rounded-md bg-muted p-3 font-mono text-xs">{s.source}</pre>
@@ -170,7 +171,7 @@ export function SubmissionPage() {
       )}
       {s.outputs && (
         <Card>
-          <CardContent className="pt-5 text-sm">Uploaded outputs for: {s.outputs.join(', ')}</CardContent>
+          <CardContent className="pt-5 text-sm">{t('Uploaded outputs for')}: {s.outputs.join(', ')}</CardContent>
         </Card>
       )}
     </div>

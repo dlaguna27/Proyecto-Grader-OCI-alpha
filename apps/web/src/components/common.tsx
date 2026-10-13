@@ -5,6 +5,7 @@ import { Badge } from './ui/badge';
 import { cn, fmtDuration } from '@/lib/utils';
 import { useNow } from '@/lib/auth';
 import type { JStatus } from '@/lib/types';
+import { t } from '@/lib/i18n';
 
 export function Spinner({ className }: { className?: string }) {
   return (
@@ -48,24 +49,24 @@ export const VERDICT_LABEL: Record<string, string> = { ...TEST_VERDICT_LABELS, C
 export function VerdictBadge({ verdict, short }: { verdict: string | null; short?: boolean }) {
   if (!verdict) return <Badge variant="muted">–</Badge>;
   return (
-    <Badge variant={VERDICT_STYLE[verdict] ?? 'secondary'} title={VERDICT_LABEL[verdict] ?? verdict}>
-      {short ? verdict : (VERDICT_LABEL[verdict] ?? verdict)}
+    <Badge variant={VERDICT_STYLE[verdict] ?? 'secondary'} title={t(VERDICT_LABEL[verdict] ?? verdict)}>
+      {short ? verdict : t(VERDICT_LABEL[verdict] ?? verdict)}
     </Badge>
   );
 }
 
 export function StatusBadge({ status, verdict, done, total }: { status: JStatus; verdict: string | null; done?: number; total?: number }) {
-  if (status === 'QUEUED') return <Badge variant="muted">Queued</Badge>;
+  if (status === 'QUEUED') return <Badge variant="muted">{t('Queued')}</Badge>;
   if (status === 'COMPILING')
     return (
       <Badge variant="outline" className="gap-1">
-        <Loader2 className="h-3 w-3 animate-spin" /> Compiling
+        <Loader2 className="h-3 w-3 animate-spin" /> {t('Compiling')}
       </Badge>
     );
   if (status === 'RUNNING')
     return (
       <Badge variant="outline" className="gap-1">
-        <Loader2 className="h-3 w-3 animate-spin" /> Running {total ? `${done}/${total}` : ''}
+        <Loader2 className="h-3 w-3 animate-spin" /> {t('Running')} {total ? `${done}/${total}` : ''}
       </Badge>
     );
   if (status === 'CE') return <VerdictBadge verdict="CE" />;
@@ -77,12 +78,12 @@ export function Countdown({ startsAt, endsAt }: { startsAt: string; endsAt: stri
   const now = useNow();
   const s = new Date(startsAt).getTime();
   const e = new Date(endsAt).getTime();
-  if (now < s) return <span className="font-mono">Starts in {fmtDuration(s - now)}</span>;
-  if (now < e) return <span className="font-mono">{fmtDuration(e - now)} left</span>;
-  return <span>Contest over</span>;
+  if (now < s) return <span className="font-mono">{t('Starts in {d}', { d: fmtDuration(s - now) })}</span>;
+  if (now < e) return <span className="font-mono">{t('{d} left', { d: fmtDuration(e - now) })}</span>;
+  return <span>{t('Contest over')}</span>;
 }
 
 export function LanguageName({ lang }: { lang: string | null }) {
-  if (!lang) return <span className="text-muted-foreground">output</span>;
+  if (!lang) return <span className="text-muted-foreground">{t('output')}</span>;
   return <>{lang === 'cpp' ? 'C++20' : lang === 'python' ? 'Python 3' : lang}</>;
 }

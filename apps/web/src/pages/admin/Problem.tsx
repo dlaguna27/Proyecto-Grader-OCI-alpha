@@ -18,6 +18,7 @@ import { ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { cn, fmtTime, score } from '@/lib/utils';
 import { InlineMarkdown, Markdown } from '../Problem';
 import type { ProblemType } from '@/lib/types';
+import { t } from '@/lib/i18n';
 
 interface AdminProblem {
   id: string;
@@ -59,9 +60,9 @@ export function AdminProblemPage() {
   const p = q.data;
   const ioi = p.contest.scoringMode === 'IOI';
   const warnings: string[] = [];
-  if (!p.activeTestSet) warnings.push('No tests uploaded yet.');
-  if (p.type === 'INTERACTIVE' && !p.interactorSha) warnings.push('Interactive problem needs an interactor.');
-  if (p.checkerKind === 'CUSTOM' && !p.checkerSha) warnings.push('Custom checker selected but not uploaded.');
+  if (!p.activeTestSet) warnings.push(t('No tests uploaded yet.'));
+  if (p.type === 'INTERACTIVE' && !p.interactorSha) warnings.push(t('Interactive problem needs an interactor.'));
+  if (p.checkerKind === 'CUSTOM' && !p.checkerSha) warnings.push(t('Custom checker selected but not uploaded.'));
   return (
     <div>
       <PageHeader
@@ -78,17 +79,17 @@ export function AdminProblemPage() {
         }
         actions={
           <Button variant="outline" size="sm" asChild>
-            <Link to={`/c/${p.contestId}/p/${p.id}`}>Preview as contestant</Link>
+            <Link to={`/c/${p.contestId}/p/${p.id}`}>{t('Preview as contestant')}</Link>
           </Button>
         }
       />
       {warnings.length > 0 && <div className="mb-4 rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">{warnings.join(' ')}</div>}
       <Tabs defaultValue="tests">
         <TabsList>
-          <TabsTrigger value="tests">Tests{ioi ? ' & subtasks' : ''}</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="statement">Statement</TabsTrigger>
-          <TabsTrigger value="files">{p.type === 'INTERACTIVE' ? 'Interactor' : 'Checker'} & files</TabsTrigger>
+          <TabsTrigger value="tests">{ioi ? t('Tests & subtasks') : t('Tests')}</TabsTrigger>
+          <TabsTrigger value="settings">{t('Settings')}</TabsTrigger>
+          <TabsTrigger value="statement">{t('Statement')}</TabsTrigger>
+          <TabsTrigger value="files">{p.type === 'INTERACTIVE' ? t('Interactor & files') : t('Checker & files')}</TabsTrigger>
         </TabsList>
         <TabsContent value="tests" className="space-y-6">
           <TestsCard p={p} />
@@ -144,7 +145,7 @@ function TestsCard({ p }: { p: AdminProblem }) {
     try {
       const r = (await upload(`/api/admin/problems/${p.id}/tests${rejudge ? '?rejudge=1' : ''}`, f)) as unknown as typeof result;
       setResult(r);
-      toast.success(`Uploaded ${r!.tests} tests`);
+      toast.success(t('Uploaded {n} tests', { n: r!.tests }));
       refresh();
     } catch (e) {
       setError(e);
@@ -155,7 +156,7 @@ function TestsCard({ p }: { p: AdminProblem }) {
   };
   const activate = async (tsid: string) => {
     await api.post(`/api/admin/problems/${p.id}/test-sets/${tsid}/activate`);
-    toast.success('Test set activated. Rejudge to apply it to existing submissions.');
+    toast.success(t('Test set activated. Rejudge to apply it to existing submissions.'));
     refresh();
   };
   const ts = p.activeTestSet;
@@ -163,19 +164,18 @@ function TestsCard({ p }: { p: AdminProblem }) {
     <div className="grid gap-6 lg:grid-cols-[380px_1fr]">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Upload tests (.zip)</CardTitle>
+          <CardTitle className="text-base">{t('Upload tests (.zip)')}</CardTitle>
           <CardDescription>
-            Pairs <code className="font-mono">NAME.in</code> with <code className="font-mono">NAME.out</code> / <code className="font-mono">.ans</code>. Folders are allowed. Names containing
-            “sample” or “example” become public examples.{p.type === 'INTERACTIVE' && ' For interactive problems, answer files are optional (passed to the interactor).'}
+            {t('Pairs')} <code className="font-mono">NAME.in</code> {t('with')} <code className="font-mono">NAME.out</code> / <code className="font-mono">.ans</code>. {t('Folders are allowed. Names containing “sample” or “example” become public examples.')}{p.type === 'INTERACTIVE' && ` ${t('For interactive problems, answer files are optional (passed to the interactor).')}`}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <input ref={ref} type="file" accept=".zip" className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5" />
           <label className="flex items-center gap-2 text-sm">
-            <Switch checked={rejudge} onCheckedChange={setRejudge} /> Rejudge existing submissions
+            <Switch checked={rejudge} onCheckedChange={setRejudge} /> {t('Rejudge existing submissions')}
           </label>
           <Button onClick={go} disabled={busy} className="w-full">
-            <Upload /> {busy ? 'Uploading…' : 'Upload'}
+            <Upload /> {busy ? t('Uploading…') : t('Upload')}
           </Button>
           <ErrorBox error={error} />
           {result && (
@@ -190,17 +190,17 @@ function TestsCard({ p }: { p: AdminProblem }) {
           )}
           {p.testSets.length > 1 && (
             <div className="pt-2">
-              <div className="mb-1 text-sm font-medium">Test set history</div>
-              {p.testSets.map((t) => (
-                <div key={t.id} className="flex items-center justify-between border-t py-1.5 text-xs">
+              <div className="mb-1 text-sm font-medium">{t('Test set history')}</div>
+              {p.testSets.map((tt) => (
+                <div key={tt.id} className="flex items-center justify-between border-t py-1.5 text-xs">
                   <span>
-                    {fmtTime(t.createdAt)} · {t._count.tests} tests · {t.note}
+                    {fmtTime(tt.createdAt)} · {tt._count.tests} {t('tests')} · {tt.note}
                   </span>
-                  {t.id === p.activeTestSetId ? (
-                    <Badge variant="success">active</Badge>
+                  {tt.id === p.activeTestSetId ? (
+                    <Badge variant="success">{t('active')}</Badge>
                   ) : (
-                    <Button size="sm" variant="ghost" onClick={() => activate(t.id)}>
-                      Activate
+                    <Button size="sm" variant="ghost" onClick={() => activate(tt.id)}>
+                      {t('Activate')}
                     </Button>
                   )}
                 </div>
@@ -211,32 +211,32 @@ function TestsCard({ p }: { p: AdminProblem }) {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Active tests {ts && <span className="font-normal text-muted-foreground">({ts.tests.length})</span>}</CardTitle>
+          <CardTitle className="text-base">{t('Active tests')} {ts && <span className="font-normal text-muted-foreground">({ts.tests.length})</span>}</CardTitle>
         </CardHeader>
         {ts ? (
           <div className="max-h-[420px] overflow-auto">
             <Table>
               <THead>
                 <TR>
-                  <TH>Name</TH>
-                  <TH className="text-right">Input size</TH>
-                  <TH>Files</TH>
+                  <TH>{t('Name')}</TH>
+                  <TH className="text-right">{t('Input size')}</TH>
+                  <TH>{t('Files')}</TH>
                 </TR>
               </THead>
               <TBody>
-                {ts.tests.map((t) => (
-                  <TR key={t.id}>
+                {ts.tests.map((tt) => (
+                  <TR key={tt.id}>
                     <TD className="font-mono text-xs">
-                      {t.name} {t.isSample && <Badge variant="info" className="ml-1">sample</Badge>}
+                      {tt.name} {tt.isSample && <Badge variant="info" className="ml-1">{t('sample')}</Badge>}
                     </TD>
-                    <TD className="text-right text-xs text-muted-foreground">{t.inputSize < 1024 ? `${t.inputSize} B` : `${(t.inputSize / 1024).toFixed(1)} KB`}</TD>
+                    <TD className="text-right text-xs text-muted-foreground">{tt.inputSize < 1024 ? `${tt.inputSize} B` : `${(tt.inputSize / 1024).toFixed(1)} KB`}</TD>
                     <TD className="space-x-2 text-xs">
-                      <a className="text-primary hover:underline" href={`/api/admin/tests/${t.id}/in`}>
-                        in
+                      <a className="text-primary hover:underline" href={`/api/admin/tests/${tt.id}/in`}>
+                        {t('in')}
                       </a>
-                      {t.hasAnswer && (
-                        <a className="text-primary hover:underline" href={`/api/admin/tests/${t.id}/out`}>
-                          answer
+                      {tt.hasAnswer && (
+                        <a className="text-primary hover:underline" href={`/api/admin/tests/${tt.id}/out`}>
+                          {t('answer')}
                         </a>
                       )}
                     </TD>
@@ -246,7 +246,7 @@ function TestsCard({ p }: { p: AdminProblem }) {
             </Table>
           </div>
         ) : (
-          <CardContent className="text-sm text-muted-foreground">Upload a zip to create the first test set.</CardContent>
+          <CardContent className="text-sm text-muted-foreground">{t('Upload a zip to create the first test set.')}</CardContent>
         )}
       </Card>
     </div>
@@ -280,10 +280,10 @@ function SubtasksEditor({ p }: { p: AdminProblem }) {
     setDirty(true);
   };
   const toggle = (i: number, name: string) => {
-    const t = new Set(subs[i].tests);
-    if (t.has(name)) t.delete(name);
-    else t.add(name);
-    update(i, { tests: t });
+    const tt = new Set(subs[i].tests);
+    if (tt.has(name)) tt.delete(name);
+    else tt.add(name);
+    update(i, { tests: tt });
   };
   const applyPattern = (i: number) => {
     const raw = pattern[i]?.trim();
@@ -292,12 +292,12 @@ function SubtasksEditor({ p }: { p: AdminProblem }) {
     try {
       re = new RegExp(raw.includes('*') ? '^' + raw.split('*').map((x) => x.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('.*') + '$' : raw);
     } catch {
-      toast.error('Invalid pattern');
+      toast.error(t('Invalid pattern'));
       return;
     }
-    const t = new Set(subs[i].tests);
-    for (const x of ts.tests) if (re.test(x.name)) t.add(x.name);
-    update(i, { tests: t });
+    const tt = new Set(subs[i].tests);
+    for (const x of ts.tests) if (re.test(x.name)) tt.add(x.name);
+    update(i, { tests: tt });
   };
   const move = (i: number, d: number) => {
     const n = [...subs];
@@ -312,28 +312,28 @@ function SubtasksEditor({ p }: { p: AdminProblem }) {
     setError(null);
     try {
       const r = await api.put<{ rescored: number }>(`/api/admin/problems/${p.id}/subtasks`, {
-        subtasks: subs.map((s) => ({ name: s.name, points: s.points, scoring: s.scoring, tests: ts.tests.filter((t) => s.tests.has(t.name)).map((t) => t.name) })),
+        subtasks: subs.map((s) => ({ name: s.name, points: s.points, scoring: s.scoring, tests: ts.tests.filter((tt) => s.tests.has(tt.name)).map((tt) => tt.name) })),
       });
-      toast.success(`Subtasks saved; ${r.rescored} submission(s) rescored`);
+      toast.success(t('Subtasks saved; {n} submission(s) rescored', { n: r.rescored }));
       setDirty(false);
       refresh();
     } catch (e) {
       setError(e);
     }
   };
-  const unassigned = ts.tests.filter((t) => !t.isSample && !subs.some((s) => s.tests.has(t.name)));
+  const unassigned = ts.tests.filter((tt) => !tt.isSample && !subs.some((s) => s.tests.has(tt.name)));
   return (
     <Card>
       <CardHeader className="flex-row flex-wrap items-start justify-between gap-2 space-y-0">
         <div>
-          <CardTitle className="text-base">Subtasks</CardTitle>
+          <CardTitle className="text-base">{t('Subtasks')}</CardTitle>
           <CardDescription>
-            Points use {p.scorePrecision === 0 ? 'whole numbers' : `up to ${p.scorePrecision} decimal place${p.scorePrecision > 1 ? 's' : ''} (step ${step})`} — change in Settings.
-            “All tests” (MIN) gives points only if every test passes; “Per test” (SUM) splits the points across tests. Saving rescores existing submissions without rejudging.
+            {p.scorePrecision === 0 ? t('Points use whole numbers — change in Settings.') : t('Points use up to {n} decimal place(s) (step {step}) — change in Settings.', { n: p.scorePrecision, step })}{' '}
+            {t('“All tests” (MIN) gives points only if every test passes; “Per test” (SUM) splits the points across tests. Saving rescores existing submissions without rejudging.')}
           </CardDescription>
         </div>
         <div className="text-right">
-          <div className="text-xs text-muted-foreground">Total</div>
+          <div className="text-xs text-muted-foreground">{t('Total')}</div>
           <div className="font-mono text-xl font-semibold">{total.toFixed(p.scorePrecision)}</div>
         </div>
       </CardHeader>
@@ -342,26 +342,26 @@ function SubtasksEditor({ p }: { p: AdminProblem }) {
           <div key={s.key} className="rounded-lg border p-3">
             <div className="flex flex-wrap items-end gap-2">
               <div className="w-8 pb-2 text-center font-semibold">{i + 1}</div>
-              <Field label="Description (Markdown, LaTeX with $…$)" className="min-w-[160px] flex-1">
-                <Input value={s.name} onChange={(e) => update(i, { name: e.target.value })} placeholder="e.g. $N \le 1000$" />
+              <Field label={t('Description (Markdown, LaTeX with $…$)')} className="min-w-[160px] flex-1">
+                <Input value={s.name} onChange={(e) => update(i, { name: e.target.value })} placeholder={t('e.g.') + ' $N \\le 1000$'} />
               </Field>
-              <Field label="Points" className="w-28">
+              <Field label={t('Points')} className="w-28">
                 <Input value={s.points} inputMode="decimal" onChange={(e) => update(i, { points: e.target.value })} />
               </Field>
-              <Field label="Scoring" className="w-40">
+              <Field label={t('Scoring')} className="w-40">
                 <NativeSelect value={s.scoring} onChange={(e) => update(i, { scoring: e.target.value as 'MIN' | 'SUM' })}>
-                  <option value="MIN">All tests (MIN)</option>
-                  <option value="SUM">Per test (SUM)</option>
+                  <option value="MIN">{t('All tests (MIN)')}</option>
+                  <option value="SUM">{t('Per test (SUM)')}</option>
                 </NativeSelect>
               </Field>
-              <Field label="Add by pattern" className="w-44">
-                <Input placeholder="e.g. 2-* or ^big" value={pattern[i] ?? ''} onChange={(e) => setPattern({ ...pattern, [i]: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && applyPattern(i)} />
+              <Field label={t('Add by pattern')} className="w-44">
+                <Input placeholder={t('e.g. 2-* or ^big')} value={pattern[i] ?? ''} onChange={(e) => setPattern({ ...pattern, [i]: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && applyPattern(i)} />
               </Field>
               <Button variant="outline" size="sm" className="mb-0.5" onClick={() => applyPattern(i)}>
-                Add
+                {t('Add')}
               </Button>
               <Button variant="ghost" size="sm" className="mb-0.5" onClick={() => update(i, { tests: new Set() })}>
-                Clear
+                {t('Clear')}
               </Button>
               <div className="mb-0.5 ml-auto flex">
                 <Button variant="ghost" size="icon" disabled={i === 0} onClick={() => move(i, -1)}>
@@ -377,34 +377,34 @@ function SubtasksEditor({ p }: { p: AdminProblem }) {
             </div>
             {s.name.includes('$') && (
               <div className="mt-2 pl-10 text-sm text-muted-foreground">
-                Preview: <InlineMarkdown>{s.name}</InlineMarkdown>
+                {t('Preview')}: <InlineMarkdown>{s.name}</InlineMarkdown>
               </div>
             )}
             <div className="mt-3 flex flex-wrap gap-1">
-              {ts.tests.map((t) => (
+              {ts.tests.map((tt) => (
                 <button
-                  key={t.id}
-                  onClick={() => toggle(i, t.name)}
+                  key={tt.id}
+                  onClick={() => toggle(i, tt.name)}
                   className={cn(
                     'rounded border px-2 py-0.5 font-mono text-xs transition-colors',
-                    s.tests.has(t.name) ? 'border-primary bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent',
+                    s.tests.has(tt.name) ? 'border-primary bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent',
                   )}
                 >
-                  {t.name}
+                  {tt.name}
                 </button>
               ))}
             </div>
             <div className="mt-1 text-xs text-muted-foreground">{s.tests.size} test(s)</div>
           </div>
         ))}
-        {unassigned.length > 0 && <div className="text-sm text-amber-700 dark:text-amber-400">Not in any subtask: {unassigned.map((t) => t.name).join(', ')}</div>}
+        {unassigned.length > 0 && <div className="text-sm text-amber-700 dark:text-amber-400">{t('Not in any subtask')}: {unassigned.map((tt) => tt.name).join(', ')}</div>}
         <ErrorBox error={error} />
         <div className="flex justify-between">
           <Button variant="outline" onClick={() => { setSubs([...subs, { key: Date.now(), name: '', points: '0', scoring: 'MIN', tests: new Set() }]); setDirty(true); }}>
-            <Plus /> Add subtask
+            <Plus /> {t('Add subtask')}
           </Button>
           <Button onClick={save} disabled={!dirty}>
-            Save subtasks
+            {t('Save subtasks')}
           </Button>
         </div>
       </CardContent>
@@ -433,51 +433,51 @@ function SettingsCard({ p }: { p: AdminProblem }) {
         checkerKind: f.checkerKind,
         checkerEpsilon: f.checkerKind === 'FLOAT' ? f.checkerEpsilon ?? 1e-6 : f.checkerEpsilon,
       });
-      toast.success('Saved');
+      toast.success(t('Saved'));
       refresh();
     } catch (e) {
       setError(e);
     }
   };
   const remove = async () => {
-    if (!confirm(`Delete problem ${p.code} and all its submissions?`)) return;
+    if (!confirm(t('Delete problem {c} and all its submissions?', { c: p.code }))) return;
     await api.del(`/api/admin/problems/${p.id}`);
     nav(`/admin/contests/${p.contestId}`);
   };
   return (
     <Card>
       <CardContent className="grid gap-4 pt-5 md:grid-cols-3">
-        <Field label="Code">
+        <Field label={t('Code')}>
           <Input value={f.code} onChange={(e) => set('code', e.target.value)} />
         </Field>
-        <Field label="Title" className="md:col-span-2">
+        <Field label={t('Title')} className="md:col-span-2">
           <Input value={f.title} onChange={(e) => set('title', e.target.value)} />
         </Field>
-        <Field label="Type" hint="Fixed after creation">
-          <Input value={{ BATCH: 'Batch', OUTPUT_ONLY: 'Output-only', INTERACTIVE: 'Interactive' }[p.type]} disabled />
+        <Field label={t('Type')} hint={t('Fixed after creation')}>
+          <Input value={t({ BATCH: 'Batch', OUTPUT_ONLY: 'Output-only', INTERACTIVE: 'Interactive' }[p.type])} disabled />
         </Field>
         {p.type !== 'OUTPUT_ONLY' && (
           <>
-            <Field label="Time limit (ms)" hint="CPU time per test; wall limit is about 3× plus 1 s">
+            <Field label={t('Time limit (ms)')} hint={t('CPU time per test; wall limit is about 3× plus 1 s')}>
               <Input type="number" min={100} step={100} value={f.timeLimitMs} onChange={(e) => set('timeLimitMs', Number(e.target.value))} />
             </Field>
-            <Field label="Memory limit (MB)">
+            <Field label={t('Memory limit (MB)')}>
               <Input type="number" min={16} value={f.memoryLimitMb} onChange={(e) => set('memoryLimitMb', Number(e.target.value))} />
             </Field>
           </>
         )}
-        <Field label="Score decimals" hint="0 = whole points. 1 or 2 allow decimal subtask points and partial scores (e.g. 12.5).">
+        <Field label={t('Score decimals')} hint={t('0 = whole points. 1 or 2 allow decimal subtask points and partial scores (e.g. 12.5).')}>
           <NativeSelect value={f.scorePrecision} onChange={(e) => set('scorePrecision', Number(e.target.value))}>
-            <option value={0}>0 — integer scores</option>
-            <option value={1}>1 decimal (12.5)</option>
-            <option value={2}>2 decimals (12.25)</option>
+            <option value={0}>{t('0 — integer scores')}</option>
+            <option value={1}>{t('1 decimal (12.5)')}</option>
+            <option value={2}>{t('2 decimals (12.25)')}</option>
           </NativeSelect>
         </Field>
-        <Field label="Display order">
+        <Field label={t('Display order')}>
           <Input type="number" value={f.ordinal} onChange={(e) => set('ordinal', Number(e.target.value))} />
         </Field>
         {p.contest.balloonPalette === 'CUSTOM' ? (
-          <Field label="Balloon color" hint="Pick a preset or any color." className="md:col-span-2">
+          <Field label={t('Balloon color')} hint={t('Pick a preset or any color.')} className="md:col-span-2">
             <div className="flex flex-wrap items-center gap-1.5">
               <input
                 type="color"
@@ -498,25 +498,25 @@ function SettingsCard({ p }: { p: AdminProblem }) {
             </div>
           </Field>
         ) : (
-          <Field label="Balloon color" hint="ICPC preset, by problem order. Choose custom colors in the contest settings." className="md:col-span-2">
+          <Field label={t('Balloon color')} hint={t('ICPC preset, by problem order. Choose custom colors in the contest settings.')} className="md:col-span-2">
             <div className="flex h-9 items-center gap-2 text-sm">
-              <Balloon color={p.color} /> {ICPC_BALLOON_COLORS.find((x) => x.hex === p.color)?.name}
+              <Balloon color={p.color} /> {t(ICPC_BALLOON_COLORS.find((x) => x.hex === p.color)?.name ?? '')}
             </div>
           </Field>
         )}
         {p.type !== 'INTERACTIVE' && (
           <>
-            <Field label="Output checking">
+            <Field label={t('Output checking')}>
               <NativeSelect value={f.checkerKind} onChange={(e) => set('checkerKind', e.target.value as AdminProblem['checkerKind'])}>
-                <option value="TOKENS">Exact tokens (ignores whitespace)</option>
-                <option value="FLOAT">Tokens with float tolerance</option>
+                <option value="TOKENS">{t('Exact tokens (ignores whitespace)')}</option>
+                <option value="FLOAT">{t('Tokens with float tolerance')}</option>
                 <option value="CUSTOM" disabled={!p.checkerSha}>
-                  Custom checker (testlib){!p.checkerSha ? ' — upload first' : ''}
+                  {t('Custom checker (testlib)')}{!p.checkerSha ? ` — ${t('upload first')}` : ''}
                 </option>
               </NativeSelect>
             </Field>
             {f.checkerKind === 'FLOAT' && (
-              <Field label="Tolerance (absolute or relative)">
+              <Field label={t('Tolerance (absolute or relative)')}>
                 <Input type="number" step="any" value={f.checkerEpsilon ?? 1e-6} onChange={(e) => set('checkerEpsilon', Number(e.target.value))} />
               </Field>
             )}
@@ -527,9 +527,9 @@ function SettingsCard({ p }: { p: AdminProblem }) {
         </div>
         <div className="flex justify-between md:col-span-3">
           <Button variant="destructive" onClick={remove}>
-            <Trash2 /> Delete problem
+            <Trash2 /> {t('Delete problem')}
           </Button>
-          <Button onClick={save}>Save settings</Button>
+          <Button onClick={save}>{t('Save settings')}</Button>
         </div>
       </CardContent>
     </Card>
@@ -541,26 +541,26 @@ function StatementCard({ p }: { p: AdminProblem }) {
   const [md, setMd] = useState(p.statementMd);
   const save = async () => {
     await api.patch(`/api/admin/problems/${p.id}`, { statementMd: md });
-    toast.success('Statement saved');
+    toast.success(t('Statement saved'));
     refresh();
   };
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Markdown statement</CardTitle>
-          <CardDescription>Supports GitHub Markdown and LaTeX math ($x^2$, $$\sum$$). Leave empty to show the uploaded PDF instead.</CardDescription>
+          <CardTitle className="text-base">{t('Markdown statement')}</CardTitle>
+          <CardDescription>{t('Supports GitHub Markdown and LaTeX math ($x^2$, $$\\sum$$). Leave empty to show the uploaded PDF instead.')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Textarea className="h-[520px] font-mono text-xs" value={md} onChange={(e) => setMd(e.target.value)} />
-          <Button onClick={save}>Save statement</Button>
+          <Button onClick={save}>{t('Save statement')}</Button>
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Preview</CardTitle>
+          <CardTitle className="text-base">{t('Preview')}</CardTitle>
         </CardHeader>
-        <CardContent>{md ? <Markdown>{md}</Markdown> : <p className="text-sm text-muted-foreground">Empty</p>}</CardContent>
+        <CardContent>{md ? <Markdown>{md}</Markdown> : <p className="text-sm text-muted-foreground">{t('Empty')}</p>}</CardContent>
       </Card>
     </div>
   );
@@ -576,7 +576,7 @@ function FileSlot({ p, kind, title, description, accept, present }: { p: AdminPr
     setBusy(true);
     try {
       await upload(`/api/admin/problems/${p.id}/${kind}`, f);
-      toast.success(`${title} uploaded`);
+      toast.success(t('{f} uploaded', { f: title }));
       refresh();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : String(e));
@@ -593,7 +593,7 @@ function FileSlot({ p, kind, title, description, accept, present }: { p: AdminPr
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-base">
-          {title} {present ? <Badge variant="success">uploaded</Badge> : <Badge variant="muted">none</Badge>}
+          {title} {present ? <Badge variant="success">{t('uploaded')}</Badge> : <Badge variant="muted">{t('none')}</Badge>}
         </CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
@@ -601,17 +601,17 @@ function FileSlot({ p, kind, title, description, accept, present }: { p: AdminPr
         <input ref={ref} type="file" accept={accept} className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5" />
         <div className="flex gap-2">
           <Button size="sm" onClick={go} disabled={busy}>
-            <Upload /> Upload
+            <Upload /> {t('Upload')}
           </Button>
           {present && (
             <>
               <Button size="sm" variant="outline" asChild>
                 <a href={`/api/admin/problems/${p.id}/files/${kind}`} target="_blank" rel="noreferrer">
-                  <Download /> View
+                  <Download /> {t('View')}
                 </a>
               </Button>
               <Button size="sm" variant="ghost" onClick={remove}>
-                <Trash2 /> Remove
+                <Trash2 /> {t('Remove')}
               </Button>
             </>
           )}
@@ -628,23 +628,23 @@ function FilesCard({ p }: { p: AdminProblem }) {
         <FileSlot
           p={p}
           kind="interactor"
-          title="Interactor"
+          title={t('Interactor')}
           accept=".cpp,.cc"
           present={!!p.interactorSha}
-          description="testlib C++ interactor: registerInteraction(argc, argv); read the test with inf, talk to the solution with ouf/cout, finish with quitf(_ok|_wa, …) or quitp(fraction, …) for partial points."
+          description={t('testlib C++ interactor: registerInteraction(argc, argv); read the test with inf, talk to the solution with ouf/cout, finish with quitf(_ok|_wa, …) or quitp(fraction, …) for partial points.')}
         />
       ) : (
         <FileSlot
           p={p}
           kind="checker"
-          title="Custom checker"
+          title={t('Custom checker')}
           accept=".cpp,.cc"
           present={!!p.checkerSha}
-          description="testlib C++ checker: registerTestlibCmd(argc, argv); inf = input, ouf = contestant output, ans = answer. Use quitf(_ok|_wa, …) or quitp(fraction, …). Uploading switches the problem to the custom checker."
+          description={t('testlib C++ checker: registerTestlibCmd(argc, argv); inf = input, ouf = contestant output, ans = answer. Use quitf(_ok|_wa, …) or quitp(fraction, …). Uploading switches the problem to the custom checker.')}
         />
       )}
-      <FileSlot p={p} kind="statement" title="Statement PDF" accept=".pdf" present={!!p.statementSha} description="Shown to contestants as a download and inline if there is no Markdown statement." />
-      <FileSlot p={p} kind="attachments" title="Attachments (.zip)" accept=".zip" present={!!p.attachmentSha} description="Extra files for contestants: graders, headers, sample files." />
+      <FileSlot p={p} kind="statement" title={t('Statement PDF')} accept=".pdf" present={!!p.statementSha} description={t('Shown to contestants as a download and inline if there is no Markdown statement.')} />
+      <FileSlot p={p} kind="attachments" title={t('Attachments (.zip)')} accept=".zip" present={!!p.attachmentSha} description={t('Extra files for contestants: graders, headers, sample files.')} />
     </div>
   );
 }

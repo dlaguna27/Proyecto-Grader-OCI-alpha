@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, LanguageName, PageHeader, Spinner, StatusBadge } from '@/components/common';
 import { fmtClock, score } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 export function Markdown({ children }: { children: string }) {
   return (
@@ -45,10 +46,10 @@ function SampleBlock({ title, text }: { title: string; text: string }) {
         {title}
         <button
           className="rounded p-1 hover:bg-accent"
-          title="Copy"
+          title={t('Copy')}
           onClick={() => {
             navigator.clipboard?.writeText(text);
-            toast.success('Copied');
+            toast.success(t('Copied'));
           }}
         >
           <Copy className="h-3.5 w-3.5" />
@@ -82,11 +83,11 @@ export function ProblemPage() {
           }
           subtitle={
             <span className="flex flex-wrap gap-2">
-              {p.type !== 'OUTPUT_ONLY' && <Badge variant="outline">Time {p.timeLimitMs / 1000}s</Badge>}
-              {p.type !== 'OUTPUT_ONLY' && <Badge variant="outline">Memory {p.memoryLimitMb} MB</Badge>}
-              {p.type === 'INTERACTIVE' && <Badge variant="info">Interactive</Badge>}
-              {p.type === 'OUTPUT_ONLY' && <Badge variant="info">Output-only</Badge>}
-              {p.maxScoreCenti !== null && p.scoringMode === 'IOI' && <Badge variant="outline">{score(p.maxScoreCenti, p.scorePrecision)} points</Badge>}
+              {p.type !== 'OUTPUT_ONLY' && <Badge variant="outline">{t('Time')} {p.timeLimitMs / 1000}s</Badge>}
+              {p.type !== 'OUTPUT_ONLY' && <Badge variant="outline">{t('Memory')} {p.memoryLimitMb} MB</Badge>}
+              {p.type === 'INTERACTIVE' && <Badge variant="info">{t('Interactive')}</Badge>}
+              {p.type === 'OUTPUT_ONLY' && <Badge variant="info">{t('Output-only')}</Badge>}
+              {p.maxScoreCenti !== null && p.scoringMode === 'IOI' && <Badge variant="outline">{score(p.maxScoreCenti, p.scorePrecision)} {t('points')}</Badge>}
             </span>
           }
           actions={
@@ -94,14 +95,14 @@ export function ProblemPage() {
               {p.hasStatementFile && (
                 <Button variant="outline" size="sm" asChild>
                   <a href={`${base}/statement`} target="_blank" rel="noreferrer">
-                    <FileText /> Statement PDF
+                    <FileText /> {t('Statement PDF')}
                   </a>
                 </Button>
               )}
               {p.hasAttachments && (
                 <Button variant="outline" size="sm" asChild>
                   <a href={`${base}/attachments`}>
-                    <Download /> Attachments
+                    <Download /> {t('Attachments')}
                   </a>
                 </Button>
               )}
@@ -115,28 +116,28 @@ export function ProblemPage() {
             ) : p.hasStatementFile && p.statementType === 'application/pdf' ? (
               <iframe title="statement" src={`${base}/statement`} className="h-[80vh] w-full rounded-md border" />
             ) : (
-              <p className="text-muted-foreground">No statement text.</p>
+              <p className="text-muted-foreground">{t('No statement text.')}</p>
             )}
             {p.samples.length > 0 && (
               <div className="mt-6 space-y-4">
-                <h3 className="text-lg font-semibold">Examples</h3>
+                <h3 className="text-lg font-semibold">{t('Examples')}</h3>
                 {p.samples.map((s) => (
                   <div key={s.name} className="flex flex-col gap-3 md:flex-row">
-                    <SampleBlock title={`Input (${s.name})`} text={s.input} />
-                    {s.output !== null && <SampleBlock title="Output" text={s.output} />}
+                    <SampleBlock title={`${t('Input')} (${s.name})`} text={s.input} />
+                    {s.output !== null && <SampleBlock title={t('Output')} text={s.output} />}
                   </div>
                 ))}
               </div>
             )}
             {p.subtasks.length > 0 && (
               <div className="mt-6">
-                <h3 className="mb-2 text-lg font-semibold">Subtasks</h3>
+                <h3 className="mb-2 text-lg font-semibold">{t('Subtasks')}</h3>
                 <Table>
                   <THead>
                     <TR>
                       <TH>#</TH>
-                      <TH>Description</TH>
-                      <TH className="text-right">Points</TH>
+                      <TH>{t('Description')}</TH>
+                      <TH className="text-right">{t('Points')}</TH>
                     </TR>
                   </THead>
                   <TBody>
@@ -158,7 +159,7 @@ export function ProblemPage() {
         <SubmitCard p={p} />
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Your submissions</CardTitle>
+            <CardTitle className="text-base">{t('Your submissions')}</CardTitle>
           </CardHeader>
           <Table>
             <TBody>
@@ -182,7 +183,7 @@ export function ProblemPage() {
               ))}
               {subs.data?.length === 0 && (
                 <TR>
-                  <TD className="text-sm text-muted-foreground">No submissions yet.</TD>
+                  <TD className="text-sm text-muted-foreground">{t('No submissions yet.')}</TD>
                 </TR>
               )}
             </TBody>
@@ -214,22 +215,22 @@ function SubmitCard({ p }: { p: ProblemDetail }) {
       const fd = new FormData();
       if (p.type === 'OUTPUT_ONLY') {
         const files = outRef.current?.files;
-        if (!files?.length) throw new Error('Choose your output files (or one zip)');
+        if (!files?.length) throw new Error(t('Choose your output files (or one zip)'));
         for (const f of Array.from(files)) fd.append('files', f, f.name);
       } else {
         fd.set('language', lang);
         localStorage.setItem('lang', lang);
         const f = fileRef.current?.files?.[0];
         if (mode === 'file') {
-          if (!f) throw new Error('Choose a source file');
+          if (!f) throw new Error(t('Choose a source file'));
           fd.set('source', f, f.name);
         } else {
-          if (!code.trim()) throw new Error('Paste your source code');
+          if (!code.trim()) throw new Error(t('Paste your source code'));
           fd.set('code', code);
         }
       }
       const r = await api.post<{ id: string }>(`${base}/submit`, fd);
-      toast.success('Submitted');
+      toast.success(t('Submitted'));
       qc.invalidateQueries({ queryKey: ['submissions'] });
       qc.invalidateQueries({ queryKey: ['problem', pid] });
       nav(`/s/${r.id}`);
@@ -244,10 +245,10 @@ function SubmitCard({ p }: { p: ProblemDetail }) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between text-base">
-          Submit
+          {t('Submit')}
           {remaining !== null && (
             <span className={remaining <= 5 ? 'text-sm text-destructive' : 'text-sm font-normal text-muted-foreground'}>
-              {remaining} of {p.submissionLimit} left
+              {t('{n} of {max} left', { n: remaining, max: p.submissionLimit ?? '' })}
             </span>
           )}
         </CardTitle>
@@ -257,12 +258,11 @@ function SubmitCard({ p }: { p: ProblemDetail }) {
           <>
             <Button variant="outline" className="w-full" asChild>
               <a href={`${base}/inputs.zip`}>
-                <Download /> Download all inputs (.zip)
+                <Download /> {t('Download all inputs (.zip)')}
               </a>
             </Button>
             <p className="text-xs text-muted-foreground">
-              Upload one file per test named like <code className="font-mono">{p.outputOnlyTests[0] ?? 'NAME'}.out</code>, or a single zip with all of them. Tests
-              without a file score 0.
+              {t('Upload one file per test named like')} <code className="font-mono">{p.outputOnlyTests[0] ?? 'NAME'}.out</code>{t(', or a single zip with all of them. Tests without a file score 0.')}
             </p>
             <input ref={outRef} type="file" multiple className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5" />
           </>
@@ -278,8 +278,8 @@ function SubmitCard({ p }: { p: ProblemDetail }) {
               </NativeSelect>
               <Tabs value={mode} onValueChange={(v) => setMode(v as 'paste' | 'file')}>
                 <TabsList>
-                  <TabsTrigger value="paste">Paste</TabsTrigger>
-                  <TabsTrigger value="file">File</TabsTrigger>
+                  <TabsTrigger value="paste">{t('Paste')}</TabsTrigger>
+                  <TabsTrigger value="file">{t('File')}</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -293,10 +293,10 @@ function SubmitCard({ p }: { p: ProblemDetail }) {
                 onKeyDown={(e) => {
                   if (e.key === 'Tab') {
                     e.preventDefault();
-                    const t = e.currentTarget;
-                    const s = t.selectionStart;
-                    setCode(code.slice(0, s) + '    ' + code.slice(t.selectionEnd));
-                    requestAnimationFrame(() => (t.selectionStart = t.selectionEnd = s + 4));
+                    const ta = e.currentTarget;
+                    const s = ta.selectionStart;
+                    setCode(code.slice(0, s) + '    ' + code.slice(ta.selectionEnd));
+                    requestAnimationFrame(() => (ta.selectionStart = ta.selectionEnd = s + 4));
                   }
                 }}
               />
@@ -308,12 +308,12 @@ function SubmitCard({ p }: { p: ProblemDetail }) {
                 className="block w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5"
               />
             )}
-            {p.type === 'INTERACTIVE' && <p className="text-xs text-muted-foreground">Remember to flush your output after every line (endl / flush=True).</p>}
+            {p.type === 'INTERACTIVE' && <p className="text-xs text-muted-foreground">{t('Remember to flush your output after every line (endl / flush=True).')}</p>}
           </>
         )}
         <ErrorBox error={error} />
         <Button className="w-full" onClick={send} disabled={busy || remaining === 0}>
-          <Upload /> {busy ? 'Submitting…' : 'Submit'}
+          <Upload /> {busy ? t('Submitting…') : t('Submit')}
         </Button>
       </CardContent>
     </Card>

@@ -1,3 +1,5 @@
+import { tServer } from './i18n';
+
 export class ApiError extends Error {
   constructor(
     readonly status: number,
@@ -27,7 +29,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   }
   if (!res.ok) {
     const msg = typeof data === 'object' && data && 'error' in data ? String((data as { error: string }).error) : res.statusText;
-    throw new ApiError(res.status, msg);
+    throw new ApiError(res.status, tServer(msg));
   }
   return data as T;
 }

@@ -11,6 +11,7 @@ import { Input, NativeSelect, Textarea } from '@/components/ui/input';
 import { Field } from '@/components/ui/label';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, PageHeader, Spinner } from '@/components/common';
+import { t, tServer } from '@/lib/i18n';
 
 interface User {
   id: string;
@@ -27,7 +28,7 @@ function printCredentials(creds: Cred[]) {
   const w = window.open('', '_blank');
   if (!w) return;
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-  w.document.write(`<html><head><title>Credentials</title><style>
+  w.document.write(`<html><head><title>${t('Credentials')}</title><style>
     body{font-family:system-ui,sans-serif;margin:0}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:0}
     .c{border:1px dashed #999;padding:18px 22px;page-break-inside:avoid}
@@ -36,7 +37,7 @@ function printCredentials(creds: Cred[]) {
   </style></head><body><div class="grid">${creds
     .map(
       (c) =>
-        `<div class="c"><div class="n">${esc(c.displayName ?? c.username)}</div><div class="k">Username</div><div class="v">${esc(c.username)}</div><div class="k">Password</div><div class="v">${esc(c.password)}</div></div>`,
+        `<div class="c"><div class="n">${esc(c.displayName ?? c.username)}</div><div class="k">${t('Username')}</div><div class="v">${esc(c.username)}</div><div class="k">${t('Password')}</div><div class="v">${esc(c.password)}</div></div>`,
     )
     .join('')}</div><script>window.print()</script></body></html>`);
   w.document.close();
@@ -52,14 +53,14 @@ export function AdminUsersPage() {
   const refresh = () => qc.invalidateQueries({ queryKey: ['admin-users'] });
 
   const reset = async (u: User) => {
-    if (!confirm(`Generate a new password for ${u.username}? They will be logged out.`)) return;
+    if (!confirm(t('Generate a new password for {u}? They will be logged out.', { u: u.username }))) return;
     const r = await api.post<Cred>(`/api/admin/users/${u.id}/reset-password`);
     setCreds([{ ...r, displayName: u.displayName }]);
   };
   const remove = async (u: User) => {
-    if (!confirm(`Delete ${u.username} and all their submissions?`)) return;
+    if (!confirm(t('Delete {u} and all their submissions?', { u: u.username }))) return;
     await api.del(`/api/admin/users/${u.id}`);
-    toast.success('Deleted');
+    toast.success(t('Deleted'));
     refresh();
   };
   if (q.isLoading) return <Spinner />;
@@ -67,31 +68,31 @@ export function AdminUsersPage() {
   return (
     <div>
       <PageHeader
-        title="Users"
-        subtitle="One account per team (or individual) — one computer each."
+        title={t('Users')}
+        subtitle={t('One account per team (or individual) — one computer each.')}
         actions={
           <>
             <Button variant="outline" onClick={() => setImportOpen(true)}>
-              <Upload /> Import CSV
+              <Upload /> {t('Import CSV')}
             </Button>
             <Button onClick={() => setEdit({ role: 'CONTESTANT' })}>
-              <Plus /> New account
+              <Plus /> {t('New account')}
             </Button>
           </>
         }
       />
-      <Input placeholder="Search…" className="mb-4 max-w-xs" value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <Input placeholder={t('Search…')} className="mb-4 max-w-xs" value={filter} onChange={(e) => setFilter(e.target.value)} />
       <ErrorBox error={q.error} />
       <Card>
         <Table>
           <THead>
             <TR>
-              <TH>Username</TH>
-              <TH>Name</TH>
-              <TH>Members</TH>
-              <TH>Organization</TH>
-              <TH>Region</TH>
-              <TH>Role</TH>
+              <TH>{t('Username')}</TH>
+              <TH>{t('Name')}</TH>
+              <TH>{t('Members')}</TH>
+              <TH>{t('Organization')}</TH>
+              <TH>{t('Region')}</TH>
+              <TH>{t('Role')}</TH>
               <TH />
             </TR>
           </THead>
@@ -107,12 +108,12 @@ export function AdminUsersPage() {
                 <TD className="text-xs text-muted-foreground">{u.members}</TD>
                 <TD>{u.organization}</TD>
                 <TD>{u.region}</TD>
-                <TD>{u.role === 'ADMIN' ? <Badge>Admin</Badge> : <Badge variant="muted">Team</Badge>}</TD>
+                <TD>{u.role === 'ADMIN' ? <Badge>{t('Admin')}</Badge> : <Badge variant="muted">{t('Team')}</Badge>}</TD>
                 <TD className="whitespace-nowrap text-right">
-                  <Button variant="ghost" size="icon" title="Reset password" onClick={() => reset(u)}>
+                  <Button variant="ghost" size="icon" title={t('Reset password')} onClick={() => reset(u)}>
                     <KeyRound />
                   </Button>
-                  <Button variant="ghost" size="icon" title="Delete" onClick={() => remove(u)}>
+                  <Button variant="ghost" size="icon" title={t('Delete')} onClick={() => remove(u)}>
                     <Trash2 />
                   </Button>
                 </TD>
@@ -126,8 +127,8 @@ export function AdminUsersPage() {
       <Dialog open={!!creds} onOpenChange={(v) => !v && setCreds(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Credentials</DialogTitle>
-            <DialogDescription>Passwords are shown only now. Print them or save them somewhere safe.</DialogDescription>
+            <DialogTitle>{t('Credentials')}</DialogTitle>
+            <DialogDescription>{t('Passwords are shown only now. Print them or save them somewhere safe.')}</DialogDescription>
           </DialogHeader>
           <div className="max-h-96 overflow-auto rounded-md border">
             <Table>
@@ -149,9 +150,9 @@ export function AdminUsersPage() {
               a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
               a.download = 'credentials.csv';
               a.click();
-            }}>Download CSV</Button>
+            }}>{t('Download CSV')}</Button>
             <Button onClick={() => printCredentials(creds!)}>
-              <Printer /> Print cards
+              <Printer /> {t('Print cards')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -182,37 +183,37 @@ function UserDialog({ user, onClose, onSaved }: { user: Partial<User>; onClose: 
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{user.id ? 'Edit account' : 'New account'}</DialogTitle>
+          <DialogTitle>{user.id ? t('Edit account') : t('New account')}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Username">
+          <Field label={t('Username')}>
             <Input value={u.username ?? ''} onChange={(e) => set('username', e.target.value)} />
           </Field>
-          <Field label="Password" hint={user.id ? 'Leave empty to keep' : 'Leave empty to generate'}>
+          <Field label={t('Password')} hint={user.id ? t('Leave empty to keep') : t('Leave empty to generate')}>
             <Input value={u.password} onChange={(e) => set('password', e.target.value)} />
           </Field>
-          <Field label="Team / display name" className="col-span-2">
+          <Field label={t('Team / display name')} className="col-span-2">
             <Input value={u.displayName ?? ''} onChange={(e) => set('displayName', e.target.value)} />
           </Field>
-          <Field label="Members" className="col-span-2" hint="Free text, e.g. names of the team members">
+          <Field label={t('Members')} className="col-span-2" hint={t('Free text, e.g. names of the team members')}>
             <Input value={u.members ?? ''} onChange={(e) => set('members', e.target.value)} />
           </Field>
-          <Field label="Organization / school">
+          <Field label={t('Organization / school')}>
             <Input value={u.organization ?? ''} onChange={(e) => set('organization', e.target.value)} />
           </Field>
-          <Field label="Region">
+          <Field label={t('Region')}>
             <Input value={u.region ?? ''} onChange={(e) => set('region', e.target.value)} />
           </Field>
-          <Field label="Role">
+          <Field label={t('Role')}>
             <NativeSelect value={u.role} onChange={(e) => set('role', e.target.value)}>
-              <option value="CONTESTANT">Contestant / team</option>
-              <option value="ADMIN">Administrator</option>
+              <option value="CONTESTANT">{t('Contestant / team')}</option>
+              <option value="ADMIN">{t('Administrator')}</option>
             </NativeSelect>
           </Field>
         </div>
         <ErrorBox error={error} />
         <DialogFooter>
-          <Button onClick={save}>Save</Button>
+          <Button onClick={save}>{t('Save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -229,7 +230,7 @@ function ImportDialog({ open, onOpenChange, onDone }: { open: boolean; onOpenCha
     try {
       const r = await api.post<{ created: Cred[]; errors: string[] }>('/api/admin/users/import', { csv, contestId: contestId || undefined });
       setErrors(r.errors);
-      toast.success(`Created ${r.created.length} account(s)`);
+      toast.success(t('Created {n} account(s)', { n: r.created.length }));
       if (r.created.length) onDone(r.created);
       if (!r.errors.length) onOpenChange(false);
     } catch (e) {
@@ -240,9 +241,9 @@ function ImportDialog({ open, onOpenChange, onDone }: { open: boolean; onOpenCha
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Import accounts from CSV</DialogTitle>
+          <DialogTitle>{t('Import accounts from CSV')}</DialogTitle>
           <DialogDescription>
-            Columns: <code className="font-mono">username,password,displayName,members,organization,region</code>. Header row optional; empty passwords are generated.
+            {t('Columns')}: <code className="font-mono">username,password,displayName,members,organization,region</code>. {t('Header row optional; empty passwords are generated.')}
           </DialogDescription>
         </DialogHeader>
         <input
@@ -255,9 +256,9 @@ function ImportDialog({ open, onOpenChange, onDone }: { open: boolean; onOpenCha
           }}
         />
         <Textarea className="h-48 font-mono text-xs" value={csv} onChange={(e) => setCsv(e.target.value)} placeholder={'username,password,displayName,members,organization,region\nteam01,,Los Algoritmos,"Ana; Luis",Colegio X,Norte'} />
-        <Field label="Also register them in contest (optional)">
+        <Field label={t('Also register them in contest (optional)')}>
           <NativeSelect value={contestId} onChange={(e) => setContestId(e.target.value)}>
-            <option value="">— none —</option>
+            <option value="">{t('— none —')}</option>
             {contests.data?.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -265,11 +266,11 @@ function ImportDialog({ open, onOpenChange, onDone }: { open: boolean; onOpenCha
             ))}
           </NativeSelect>
         </Field>
-        {errors.length > 0 && <ErrorBox error={errors.join('\n')} />}
+        {errors.length > 0 && <ErrorBox error={errors.map(tServer).join('\n')} />}
         <ErrorBox error={error} />
         <DialogFooter>
           <Button onClick={run} disabled={!csv.trim()}>
-            Import
+            {t('Import')}
           </Button>
         </DialogFooter>
       </DialogContent>

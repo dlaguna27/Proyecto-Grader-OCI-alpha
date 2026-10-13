@@ -10,8 +10,9 @@ import { Countdown, ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { fmtTime, score } from '@/lib/utils';
 import { useNow } from '@/lib/auth';
 import { Balloon } from '@/components/Balloon';
+import { t } from '@/lib/i18n';
 
-const TYPE_LABEL = { BATCH: 'Batch', OUTPUT_ONLY: 'Output-only', INTERACTIVE: 'Interactive' } as const;
+const TYPE_LABEL = { BATCH: t('Batch'), OUTPUT_ONLY: t('Output-only'), INTERACTIVE: t('Interactive') } as const;
 
 export function ContestHomePage() {
   const { cid } = useParams();
@@ -43,7 +44,7 @@ export function ContestHomePage() {
         {c.description && <p className="mb-6 whitespace-pre-wrap text-sm text-muted-foreground">{c.description}</p>}
         {notStarted ? (
           <Card>
-            <CardContent className="py-12 text-center text-muted-foreground">Problems will appear when the contest starts.</CardContent>
+            <CardContent className="py-12 text-center text-muted-foreground">{t('Problems will appear when the contest starts.')}</CardContent>
           </Card>
         ) : (
           <Card>
@@ -51,10 +52,10 @@ export function ContestHomePage() {
               <THead>
                 <TR>
                   <TH className="w-16">#</TH>
-                  <TH>Problem</TH>
-                  <TH>Type</TH>
-                  <TH className="text-right">{ioi ? 'Score' : 'Result'}</TH>
-                  <TH className="text-right">Submissions</TH>
+                  <TH>{t('Problem')}</TH>
+                  <TH>{t('Type')}</TH>
+                  <TH className="text-right">{ioi ? t('Score') : t('Result')}</TH>
+                  <TH className="text-right">{t('Submissions')}</TH>
                 </TR>
               </THead>
               <TBody>
@@ -82,9 +83,9 @@ export function ContestHomePage() {
                             <span className="text-muted-foreground"> / {score(p.maxScoreCenti, p.scorePrecision)}</span>
                           </span>
                         ) : my?.solved ? (
-                          <Badge variant="success">Solved</Badge>
+                          <Badge variant="success">{t('Solved')}</Badge>
                         ) : my?.pending ? (
-                          <Badge variant="muted">Pending</Badge>
+                          <Badge variant="muted">{t('Pending')}</Badge>
                         ) : my && my.rejected > 0 ? (
                           <Badge variant="danger">-{my.rejected}</Badge>
                         ) : (
@@ -102,7 +103,7 @@ export function ContestHomePage() {
             </Table>
             {ioi && c.problems.length > 0 && (
               <div className="flex justify-end border-t px-3 py-2 text-sm">
-                Total: <span className="ml-2 font-mono font-semibold">{score(total, Math.max(0, ...c.problems.map((p) => p.scorePrecision)))}</span>
+                {t('Total')}: <span className="ml-2 font-mono font-semibold">{score(total, Math.max(0, ...c.problems.map((p) => p.scorePrecision)))}</span>
               </div>
             )}
           </Card>
@@ -112,11 +113,11 @@ export function ContestHomePage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Megaphone className="h-4 w-4" /> Announcements
+              <Megaphone className="h-4 w-4" /> {t('Announcements')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {c.announcements.length === 0 && <p className="text-sm text-muted-foreground">No announcements.</p>}
+            {c.announcements.length === 0 && <p className="text-sm text-muted-foreground">{t('No announcements.')}</p>}
             {c.announcements.map((a) => (
               <div key={a.id} className="rounded-md border p-3">
                 <div className="text-sm font-semibold">{a.title}</div>
@@ -128,10 +129,10 @@ export function ContestHomePage() {
         </Card>
         <Card>
           <CardContent className="space-y-1 pt-5 text-sm text-muted-foreground">
-            <div>Languages: C++20 (g++ -O3), Python 3</div>
-            {c.maxSubmissionsPerTask && <div>Up to {c.maxSubmissionsPerTask} submissions per task</div>}
-            {!ioi && <div>Penalty: {c.penaltyMinutes} min per rejected attempt</div>}
-            {c.freezeAt && <div>Scoreboard freezes at {fmtTime(c.freezeAt)}</div>}
+            <div>{t('Languages')}: C++20 (g++ -O3), Python 3</div>
+            {c.maxSubmissionsPerTask && <div>{t('Up to {n} submissions per task', { n: c.maxSubmissionsPerTask })}</div>}
+            {!ioi && <div>{t('Penalty: {n} min per rejected attempt', { n: c.penaltyMinutes })}</div>}
+            {c.freezeAt && <div>{t('Scoreboard freezes at {time}', { time: fmtTime(c.freezeAt) })}</div>}
           </CardContent>
         </Card>
       </div>

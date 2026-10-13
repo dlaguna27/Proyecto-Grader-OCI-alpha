@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { fmtTime } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 interface Q {
   counts: Record<string, number>;
@@ -36,19 +37,19 @@ export function AdminQueuePage() {
   const workerNames = [...new Set(d.workers.map((w) => w.name))];
   return (
     <div className="space-y-6">
-      <PageHeader title="Grading queue" subtitle="Refreshes every 2 seconds" />
+      <PageHeader title={t('Grading queue')} subtitle={t('Refreshes every 2 seconds')} />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <Stat label="Waiting" value={d.counts.waiting ?? 0} tone={(d.counts.waiting ?? 0) > 20 ? 'text-amber-600' : ''} />
-        <Stat label="Grading now" value={d.counts.active ?? 0} />
-        <Stat label="Workers online" value={workerNames.length} tone={workerNames.length === 0 ? 'text-destructive' : 'text-emerald-600'} />
-        <Stat label="Completed (recent)" value={d.counts.completed ?? 0} />
-        <Stat label="System errors" value={d.recentErrors.length} tone={d.recentErrors.length ? 'text-destructive' : ''} />
+        <Stat label={t('Waiting')} value={d.counts.waiting ?? 0} tone={(d.counts.waiting ?? 0) > 20 ? 'text-amber-600' : ''} />
+        <Stat label={t('Grading now')} value={d.counts.active ?? 0} />
+        <Stat label={t('Workers online')} value={workerNames.length} tone={workerNames.length === 0 ? 'text-destructive' : 'text-emerald-600'} />
+        <Stat label={t('Completed (recent)')} value={d.counts.completed ?? 0} />
+        <Stat label={t('System errors')} value={d.recentErrors.length} tone={d.recentErrors.length ? 'text-destructive' : ''} />
       </div>
-      {workerNames.length === 0 && <ErrorBox error="No grading workers are connected. Submissions will wait in the queue until a worker starts." />}
+      {workerNames.length === 0 && <ErrorBox error={t('No grading workers are connected. Submissions will wait in the queue until a worker starts.')} />}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Workers</CardTitle>
+            <CardTitle className="text-base">{t('Workers')}</CardTitle>
           </CardHeader>
           <Table>
             <TBody>
@@ -61,7 +62,7 @@ export function AdminQueuePage() {
                       <Cpu className="h-4 w-4 text-muted-foreground" /> {n}
                     </TD>
                     <TD className="text-xs text-muted-foreground">{conns[0]?.addr}</TD>
-                    <TD className="text-right">{busy ? <Badge variant="success">busy {busy}</Badge> : <Badge variant="muted">idle</Badge>}</TD>
+                    <TD className="text-right">{busy ? <Badge variant="success">{t('busy')} {busy}</Badge> : <Badge variant="muted">{t('idle')}</Badge>}</TD>
                   </TR>
                 );
               })}
@@ -70,7 +71,7 @@ export function AdminQueuePage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Grading now</CardTitle>
+            <CardTitle className="text-base">{t('Grading now')}</CardTitle>
           </CardHeader>
           <Table>
             <TBody>
@@ -87,7 +88,7 @@ export function AdminQueuePage() {
               ))}
               {d.active.length === 0 && (
                 <TR>
-                  <TD className="text-sm text-muted-foreground">Nothing is being graded.</TD>
+                  <TD className="text-sm text-muted-foreground">{t('Nothing is being graded.')}</TD>
                 </TR>
               )}
             </TBody>
@@ -96,7 +97,7 @@ export function AdminQueuePage() {
       </div>
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Waiting ({d.waiting.length})</CardTitle>
+          <CardTitle className="text-base">{t('Waiting')} ({d.waiting.length})</CardTitle>
         </CardHeader>
         <Table>
           <TBody>
@@ -116,14 +117,14 @@ export function AdminQueuePage() {
       {d.recentErrors.length > 0 && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base text-destructive">System errors (need attention — fix the cause, then rejudge)</CardTitle>
+            <CardTitle className="text-base text-destructive">{t('System errors (need attention — fix the cause, then rejudge)')}</CardTitle>
           </CardHeader>
           <Table>
             <THead>
               <TR>
-                <TH>Submission</TH>
-                <TH>Error</TH>
-                <TH>When</TH>
+                <TH>{t('Submission')}</TH>
+                <TH>{t('Error')}</TH>
+                <TH>{t('When')}</TH>
               </TR>
             </THead>
             <TBody>

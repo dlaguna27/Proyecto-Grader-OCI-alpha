@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { formatScore } from '@noi/shared';
+import { locale } from './i18n';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -11,11 +12,11 @@ export function score(centi: number | null | undefined, precision: number): stri
 }
 
 export function fmtTime(d: string | Date): string {
-  return new Date(d).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return new Date(d).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 export function fmtClock(d: string | Date): string {
-  return new Date(d).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return new Date(d).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
 export function fmtDuration(ms: number): string {

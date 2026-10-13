@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import { ErrorBox, Spinner } from '@/components/common';
 import { cn, score } from '@/lib/utils';
 import { Balloon, ioiCellStyle } from '@/components/Balloon';
+import { t } from '@/lib/i18n';
 
 type Cell = IoiCell | IcpcCell;
 type Start = 'FROZEN' | 'ZERO';
@@ -45,34 +46,34 @@ function RevealSetup({ d, onStart, onReload }: { d: RevealData; onStart: (s: Sta
   const hasFreeze = d.contest.freezeAt !== null;
   return (
     <div className="container max-w-2xl py-12">
-      <h1 className="text-3xl font-semibold tracking-tight">{d.contest.name} — Score revealer</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">{d.contest.name} — {t('Score revealer')}</h1>
       <p className="mt-2 text-muted-foreground">
-        Reveals the final ranking from last place to first, one step per key press. Best shown full-screen on a projector. Only admins can open this page.
+        {t('Reveals the final ranking from last place to first, one step per key press. Best shown full-screen on a projector. Only admins can open this page.')}
       </p>
       <div className="mt-6 grid gap-4">
         <Card className="p-5">
-          <h2 className="font-semibold">From the frozen scoreboard</h2>
+          <h2 className="font-semibold">{t('From the frozen scoreboard')}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasFreeze
-              ? `Starts from what teams saw at the freeze. ${hidden} hidden result${hidden === 1 ? '' : 's'} will be revealed, always working on the lowest team on the board (like the ICPC resolver).`
-              : 'This contest has no scoreboard freeze, so there is nothing hidden: each step just confirms the next team from the bottom.'}
+              ? t('Starts from what teams saw at the freeze. {n} hidden result(s) will be revealed, always working on the lowest team on the board (like the ICPC resolver).', { n: hidden })
+              : t('This contest has no scoreboard freeze, so there is nothing hidden: each step just confirms the next team from the bottom.')}
           </p>
-          <Button className="mt-4" onClick={() => onStart('FROZEN')}>Start</Button>
+          <Button className="mt-4" onClick={() => onStart('FROZEN')}>{t('Start')}</Button>
         </Card>
         <Card className="p-5">
-          <h2 className="font-semibold">From zero (all results hidden)</h2>
+          <h2 className="font-semibold">{t('From zero (all results hidden)')}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every team starts at 0. Teams are revealed in order of final position, last place first; each step reveals one problem of the current team, and the winner is revealed last.
+            {t('Every team starts at 0. Teams are revealed in order of final position, last place first; each step reveals one problem of the current team, and the winner is revealed last.')}
           </p>
-          <Button className="mt-4" onClick={() => onStart('ZERO')}>Start</Button>
+          <Button className="mt-4" onClick={() => onStart('ZERO')}>{t('Start')}</Button>
         </Card>
       </div>
       <p className="mt-6 text-sm text-muted-foreground">
-        Keys: <b>Space</b> / <b>→</b> next · <b>←</b> back · <b>End</b> show final · <b>F</b> full-screen · <b>Esc</b> leave full-screen. Results are loaded when this page opens:{' '}
-        <button className="underline" onClick={onReload}>reload them</button> if judging changed since.
+        {t('Keys')}: <b>{t('Space')}</b> / <b>→</b> {t('next')} · <b>←</b> {t('back')} · <b>End</b> {t('show final')} · <b>F</b> {t('full-screen')} · <b>Esc</b> {t('leave full-screen')}. {t('Results are loaded when this page opens:')}{' '}
+        <button className="underline" onClick={onReload}>{t('reload them')}</button> {t('if judging changed since.')}
       </p>
       <Button variant="outline" className="mt-4" asChild>
-        <Link to={`/admin/contests/${d.contest.id}`}>Back to contest</Link>
+        <Link to={`/admin/contests/${d.contest.id}`}>{t('Back to contest')}</Link>
       </Button>
     </div>
   );
@@ -153,26 +154,26 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
           <div className="min-w-0 flex-1">
             <div className="truncate text-xl font-semibold">{d.contest.name}</div>
             <div className="truncate text-sm text-muted-foreground">
-              {i === 0 ? 'Press Space to start' : i === last ? 'Final ranking' : focusTeam ? `${focusTeam.displayName}${step.focus?.problemId ? ` — ${problems.find((p) => p.id === step.focus!.problemId)?.code}` : ' — final position'}` : ''}
+              {i === 0 ? t('Press Space to start') : i === last ? t('Final ranking') : focusTeam ? `${focusTeam.displayName}${step.focus?.problemId ? ` — ${problems.find((p) => p.id === step.focus!.problemId)?.code}` : ` — ${t('final position')}`}` : ''}
               <span className="ml-2 text-xs">({i}/{last})</span>
             </div>
           </div>
-          <Button variant="outline" size="icon" onClick={prev} disabled={i === 0} title="Back (←)"><ChevronLeft /></Button>
-          <Button size="icon" onClick={next} disabled={i === last} title="Next (Space)"><ChevronRight /></Button>
-          <Button variant="outline" size="icon" onClick={() => setI(last)} title="Show final (End)"><ChevronsRight /></Button>
-          <Button variant="ghost" size="icon" onClick={fullscreen} title="Full-screen (F)"><Maximize /></Button>
-          <Button variant="ghost" size="icon" onClick={onExit} title="Back to setup"><X /></Button>
+          <Button variant="outline" size="icon" onClick={prev} disabled={i === 0} title={`${t('Back')} (←)`}><ChevronLeft /></Button>
+          <Button size="icon" onClick={next} disabled={i === last} title={`${t('Next')} (${t('Space')})`}><ChevronRight /></Button>
+          <Button variant="outline" size="icon" onClick={() => setI(last)} title={`${t('Show final')} (End)`}><ChevronsRight /></Button>
+          <Button variant="ghost" size="icon" onClick={fullscreen} title={`${t('Full-screen')} (F)`}><Maximize /></Button>
+          <Button variant="ghost" size="icon" onClick={onExit} title={t('Back to setup')}><X /></Button>
         </div>
         <div className="grid items-center gap-2 px-6 pb-2 text-sm font-medium text-muted-foreground" style={{ gridTemplateColumns: cols }}>
-          <div className="text-center">Rank</div>
-          <div>Team</div>
+          <div className="text-center">{t('Rank')}</div>
+          <div>{t('Team')}</div>
           {problems.map((p) => (
             <div key={p.id} className="flex flex-col items-center" title={p.title}>
               <Balloon color={p.color} className="h-6" />
               {p.code}
             </div>
           ))}
-          {ioi ? <div className="text-right">Total</div> : <><div className="text-center">Solved</div><div className="text-right">Penalty</div></>}
+          {ioi ? <div className="text-right">{t('Total')}</div> : <><div className="text-center">{t('Solved')}</div><div className="text-right">{t('Penalty')}</div></>}
         </div>
       </div>
       <div ref={boardRef} className="relative mx-6 mt-2" style={{ height: step.order.length * ROW_H }}>

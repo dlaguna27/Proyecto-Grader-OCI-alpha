@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Countdown, ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { cn, fmtClock, score } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 /** Switch between the scoreboard table and the ranking history chart. */
 export function ScoreboardTabs({ cid, standalone, active }: { cid: string; standalone?: boolean; active: 'table' | 'history' }) {
@@ -19,10 +20,10 @@ export function ScoreboardTabs({ cid, standalone, active }: { cid: string; stand
   return (
     <div className="flex gap-1">
       <Button size="sm" variant={active === 'table' ? 'default' : 'outline'} asChild>
-        <Link to={table}>Table</Link>
+        <Link to={table}>{t('Table')}</Link>
       </Button>
       <Button size="sm" variant={active === 'history' ? 'default' : 'outline'} asChild>
-        <Link to={history}>Ranking history</Link>
+        <Link to={history}>{t('Ranking history')}</Link>
       </Button>
     </div>
   );
@@ -83,15 +84,15 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
   return (
     <div>
       <PageHeader
-        title={`${h.contest.name} — Ranking history`}
+        title={`${h.contest.name} — ${t('Ranking history')}`}
         subtitle={
           <span className="flex flex-wrap items-center gap-2">
             <Badge variant={h.mode === 'IOI' ? 'info' : 'warning'}>{h.mode}</Badge>
             <Countdown startsAt={h.contest.startsAt} endsAt={h.contest.endsAt} />
-            <span>· updated {fmtClock(h.generatedAt)}</span>
+            <span>· {t('updated')} {fmtClock(h.generatedAt)}</span>
             {h.frozen && h.freezeMinute !== null && (
               <Badge variant="info" className="gap-1">
-                <Snowflake className="h-3 w-3" /> Frozen — chart stops at {fmtMinute(h.freezeMinute)}
+                <Snowflake className="h-3 w-3" /> {t('Frozen — chart stops at {m}', { m: fmtMinute(h.freezeMinute) })}
               </Badge>
             )}
           </span>
@@ -100,22 +101,22 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
       />
       {h.lastMinute < 0 || h.series.length === 0 ? (
         <Card className="p-6 text-center text-sm text-muted-foreground">
-          {h.series.length === 0 ? 'No participants yet.' : 'The chart starts when the contest starts.'}
+          {h.series.length === 0 ? t('No participants yet.') : t('The chart starts when the contest starts.')}
         </Card>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
           <Card className="p-3">
             <RankChart h={h} selected={selected} hovered={hovered} setHovered={setHovered} minute={minute} setMinute={setMinute} onToggle={toggle} />
             <p className="mt-2 px-1 text-xs text-muted-foreground">
-              Position at each minute of the contest (1 = first). Hover to see a minute; click a line or a team to highlight it.
+              {t('Position at each minute of the contest (1 = first). Hover to see a minute; click a line or a team to highlight it.')}
             </p>
           </Card>
           <Card className="max-h-[70vh] overflow-y-auto p-2">
             <div className="flex items-center justify-between px-2 py-1 text-xs font-medium text-muted-foreground">
-              <span>{minute === null ? (h.lastMinute >= h.durationMinutes ? 'Final' : `Now (${fmtMinute(h.lastMinute)})`) : `At ${fmtMinute(minute)}`}</span>
+              <span>{minute === null ? (h.lastMinute >= h.durationMinutes ? t('Final') : t('Now ({m})', { m: fmtMinute(h.lastMinute) })) : t('At {m}', { m: fmtMinute(minute) })}</span>
               {selected.size > 0 && (
                 <button className="hover:underline" onClick={() => setSelected(new Set())}>
-                  Clear
+                  {t('Clear')}
                 </button>
               )}
             </div>
@@ -134,7 +135,7 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
                 <span className="w-7 shrink-0 text-right font-mono text-xs text-muted-foreground">{rank}</span>
                 <span className="min-w-0 flex-1 truncate">
                   {s.displayName}
-                  {me?.id === s.userId && <span className="ml-1 text-xs text-muted-foreground">(you)</span>}
+                  {me?.id === s.userId && <span className="ml-1 text-xs text-muted-foreground">({t('you')})</span>}
                 </span>
                 <span className="shrink-0 font-mono text-xs">
                   {h.mode === 'IOI' ? score(s.scores[shown], h.scorePrecision) : `${s.scores[shown]} / ${s.penalties?.[shown] ?? 0}`}
@@ -191,7 +192,7 @@ function RankChart({
   };
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full select-none" onMouseMove={onMove} onMouseLeave={() => setMinute(null)} role="img" aria-label="Ranking history chart">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full select-none" onMouseMove={onMove} onMouseLeave={() => setMinute(null)} role="img" aria-label={t('Ranking history')}>
       {yTicks.map((r) => (
         <g key={`y${r}`}>
           <line x1={PAD.l} x2={W - PAD.r} y1={y(r)} y2={y(r)} className="stroke-border" strokeWidth={1} />
@@ -209,7 +210,7 @@ function RankChart({
         <g>
           <line x1={x(h.freezeMinute)} x2={x(h.freezeMinute)} y1={PAD.t} y2={PAD.t + plotH} className="stroke-sky-500" strokeDasharray="4 4" strokeWidth={1.5} />
           <text x={x(h.freezeMinute) + 4} y={PAD.t + 10} className="fill-sky-600 text-[11px] dark:fill-sky-400">
-            freeze
+            {t('freeze')}
           </text>
         </g>
       )}

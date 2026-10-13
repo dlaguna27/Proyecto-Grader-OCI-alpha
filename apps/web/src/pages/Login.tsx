@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/label';
 import { ErrorBox } from '@/components/common';
+import { lang, setLang, t } from '@/lib/i18n';
 
 export function LoginPage() {
   const [username, setUsername] = useState('');
@@ -40,22 +41,25 @@ export function LoginPage() {
           <div className="mb-2 rounded-full bg-primary/10 p-3">
             <Trophy className="h-7 w-7 text-primary" />
           </div>
-          <CardTitle className="text-xl">National Olympiad in Informatics</CardTitle>
-          <CardDescription>Sign in with the account given to your team</CardDescription>
+          <CardTitle className="text-xl">{t('National Olympiad in Informatics')}</CardTitle>
+          <CardDescription>{t('Sign in with the account given to your team')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={submit}>
-            <Field label="Username">
+            <Field label={t('Username')}>
               <Input autoFocus autoComplete="username" value={username} onChange={(e) => setUsername(e.target.value)} />
             </Field>
-            <Field label="Password">
+            <Field label={t('Password')}>
               <Input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </Field>
             <ErrorBox error={error} />
             <Button className="w-full" disabled={busy || !username || !password}>
-              {busy ? 'Signing in…' : 'Sign in'}
+              {busy ? t('Signing in…') : t('Sign in')}
             </Button>
           </form>
+          <button type="button" className="mt-4 w-full text-center text-xs text-muted-foreground hover:underline" onClick={() => setLang(lang === 'es' ? 'en' : 'es')}>
+            {lang === 'es' ? 'English' : 'Español'}
+          </button>
         </CardContent>
       </Card>
     </div>
