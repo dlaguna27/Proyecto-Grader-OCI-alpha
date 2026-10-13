@@ -11,6 +11,7 @@ import { useLogout, useMe, setServerTime } from '@/lib/auth';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { useLiveUpdates } from '@/lib/events';
+import { lang, setLang, t } from '@/lib/i18n';
 
 function NavItem({ to, children, end }: { to: string; children: React.ReactNode; end?: boolean }) {
   return (
@@ -54,27 +55,30 @@ export function Layout() {
         <div className="container flex h-14 items-center gap-4">
           <Link to="/" className="flex items-center gap-2 font-semibold">
             <Trophy className="h-5 w-5 text-primary" />
-            <span className="hidden sm:inline">NOI Contest System</span>
+            <span className="hidden sm:inline">{t('NOI Contest System')}</span>
           </Link>
           <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
             {user?.role === 'ADMIN' && (
               <>
-                <NavItem to="/admin" end>Contests</NavItem>
-                <NavItem to="/admin/users">Users</NavItem>
-                <NavItem to="/admin/submissions">Submissions</NavItem>
-                <NavItem to="/admin/queue">Queue</NavItem>
+                <NavItem to="/admin" end>{t('Contests')}</NavItem>
+                <NavItem to="/admin/users">{t('Users')}</NavItem>
+                <NavItem to="/admin/submissions">{t('Submissions')}</NavItem>
+                <NavItem to="/admin/queue">{t('Queue')}</NavItem>
               </>
             )}
             {user?.role === 'CONTESTANT' && contestId && (
               <>
-                <NavItem to={`/c/${contestId}`} end>Problems</NavItem>
-                <NavItem to={`/c/${contestId}/submissions`}>My submissions</NavItem>
-                <NavItem to={`/c/${contestId}/scoreboard`}>Scoreboard</NavItem>
-                <NavItem to={`/c/${contestId}/history`}>Ranking history</NavItem>
+                <NavItem to={`/c/${contestId}`} end>{t('Problems')}</NavItem>
+                <NavItem to={`/c/${contestId}/submissions`}>{t('My submissions')}</NavItem>
+                <NavItem to={`/c/${contestId}/scoreboard`}>{t('Scoreboard')}</NavItem>
+                <NavItem to={`/c/${contestId}/history`}>{t('Ranking history')}</NavItem>
               </>
             )}
           </nav>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} title="Toggle theme">
+          <Button variant="ghost" size="sm" className="px-2 font-mono text-xs" onClick={() => setLang(lang === 'es' ? 'en' : 'es')} title={t('Language')}>
+            {lang === 'es' ? 'EN' : 'ES'}
+          </Button>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} title={t('Toggle theme')}>
             {dark ? <Sun /> : <Moon />}
           </Button>
           {user && (
@@ -83,10 +87,10 @@ export function Layout() {
                 <div className="font-medium">{user.displayName}</div>
                 <div className="text-xs text-muted-foreground">{user.username}</div>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => setPwOpen(true)} title="Change password">
+              <Button variant="ghost" size="icon" onClick={() => setPwOpen(true)} title={t('Change password')}>
                 <KeyRound />
               </Button>
-              <Button variant="ghost" size="icon" onClick={logout} title="Log out">
+              <Button variant="ghost" size="icon" onClick={logout} title={t('Log out')}>
                 <LogOut />
               </Button>
             </div>
@@ -108,10 +112,10 @@ function PasswordDialog({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<unknown>(null);
   const save = async () => {
     setError(null);
-    if (next !== again) return setError(new Error('The new passwords do not match'));
+    if (next !== again) return setError(new Error(t('The new passwords do not match')));
     try {
       await api.post('/api/auth/password', { current, next });
-      toast.success('Password changed');
+      toast.success(t('Password changed'));
       onClose();
     } catch (e) {
       setError(e);
@@ -121,23 +125,23 @@ function PasswordDialog({ onClose }: { onClose: () => void }) {
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Change password</DialogTitle>
+          <DialogTitle>{t('Change password')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <Field label="Current password">
+          <Field label={t('Current password')}>
             <Input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
           </Field>
-          <Field label="New password" hint="At least 8 characters">
+          <Field label={t('New password')} hint={t('At least 8 characters')}>
             <Input type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
           </Field>
-          <Field label="Repeat new password">
+          <Field label={t('Repeat new password')}>
             <Input type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} />
           </Field>
           <ErrorBox error={error} />
         </div>
         <DialogFooter>
           <Button onClick={save} disabled={!current || next.length < 8}>
-            Save
+            {t('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -6,15 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Countdown, ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { fmtTime } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 export function ContestListPage() {
   const q = useQuery({ queryKey: ['contests'], queryFn: () => api.get<ContestSummary[]>('/api/contests') });
   if (q.isLoading) return <Spinner />;
   return (
     <div>
-      <PageHeader title="Contests" />
+      <PageHeader title={t('Contests')} />
       <ErrorBox error={q.error} />
-      {q.data?.length === 0 && <p className="text-muted-foreground">You are not registered for any contest yet.</p>}
+      {q.data?.length === 0 && <p className="text-muted-foreground">{t('You are not registered for any contest yet.')}</p>}
       <div className="grid gap-4 md:grid-cols-2">
         {q.data?.map((c) => (
           <Link key={c.id} to={`/c/${c.id}`}>

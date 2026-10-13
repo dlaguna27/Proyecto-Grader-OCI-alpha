@@ -11,6 +11,7 @@ import { cn, fmtClock, score } from '@/lib/utils';
 import { useLiveUpdates } from '@/lib/events';
 import { ScoreboardTabs } from './RankingHistory';
 import { Balloon, ioiCellStyle } from '@/components/Balloon';
+import { t } from '@/lib/i18n';
 
 export function ScoreboardPage({ standalone }: { standalone?: boolean }) {
   const { cid } = useParams();
@@ -41,15 +42,15 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
   return (
     <div>
       <PageHeader
-        title={`${b.contest.name} — Scoreboard`}
+        title={`${b.contest.name} — ${t('Scoreboard')}`}
         subtitle={
           <span className="flex flex-wrap items-center gap-2">
             <Badge variant={ioi ? 'info' : 'warning'}>{b.mode}</Badge>
             <Countdown startsAt={b.contest.startsAt} endsAt={b.contest.endsAt} />
-            <span>· updated {fmtClock(b.generatedAt)}</span>
+            <span>· {t('updated')} {fmtClock(b.generatedAt)}</span>
             {b.frozen && (
               <Badge variant="info" className="gap-1">
-                <Snowflake className="h-3 w-3" /> Frozen
+                <Snowflake className="h-3 w-3" /> {t('Frozen')}
               </Badge>
             )}
           </span>
@@ -60,8 +61,8 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
         <Table className={big ? 'text-base' : ''}>
           <THead>
             <TR>
-              <TH className="w-14 text-center">Rank</TH>
-              <TH>Team</TH>
+              <TH className="w-14 text-center">{t('Rank')}</TH>
+              <TH>{t('Team')}</TH>
               {b.problems.map((p) => (
                 <TH key={p.id} className="text-center" title={p.title}>
                   <div className="flex flex-col items-center gap-0.5 py-1">
@@ -70,7 +71,7 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
                   </div>
                 </TH>
               ))}
-              {ioi ? <TH className="text-right">Total</TH> : <><TH className="text-center">Solved</TH><TH className="text-right">Penalty</TH></>}
+              {ioi ? <TH className="text-right">{t('Total')}</TH> : <><TH className="text-center">{t('Solved')}</TH><TH className="text-right">{t('Penalty')}</TH></>}
             </TR>
           </THead>
           <TBody>
@@ -131,7 +132,7 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
             ))}
           </TBody>
         </Table>
-        {b.rows.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">No participants yet.</p>}
+        {b.rows.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">{t('No participants yet.')}</p>}
       </Card>
     </div>
   );

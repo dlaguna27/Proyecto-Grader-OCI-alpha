@@ -18,6 +18,7 @@ import { fmtTime, fromLocalInput, score, toLocalInput } from '@/lib/utils';
 import type { Announcement, ProblemType } from '@/lib/types';
 import { ICPC_BALLOON_COLORS } from '@noi/shared';
 import { Balloon } from '@/components/Balloon';
+import { t } from '@/lib/i18n';
 
 interface AdminContest {
   id: string;
@@ -40,7 +41,7 @@ interface AdminContest {
   problems: { id: string; code: string; title: string; type: ProblemType; ordinal: number; timeLimitMs: number; memoryLimitMb: number; scorePrecision: number; balloonColor: string | null; color: string; testCount: number; maxScoreCenti: number | null }[];
 }
 
-const TYPE_LABEL = { BATCH: 'Batch', OUTPUT_ONLY: 'Output-only', INTERACTIVE: 'Interactive' } as const;
+const TYPE_LABEL = { BATCH: t('Batch'), OUTPUT_ONLY: t('Output-only'), INTERACTIVE: t('Interactive') } as const;
 
 export function AdminContestPage() {
   const { cid } = useParams();
@@ -55,32 +56,32 @@ export function AdminContestPage() {
         subtitle={
           <span className="flex flex-wrap items-center gap-2">
             <Badge variant={c.scoringMode === 'IOI' ? 'info' : 'warning'}>{c.scoringMode}</Badge>
-            {fmtTime(c.startsAt)} – {fmtTime(c.endsAt)} · {c._count.participants} teams · {c._count.submissions} submissions
+            {fmtTime(c.startsAt)} – {fmtTime(c.endsAt)} · {t('{n} teams', { n: c._count.participants })} · {t('{n} submissions', { n: c._count.submissions })}
           </span>
         }
         actions={
           <>
             <Button variant="outline" size="sm" asChild>
               <Link to={`/board/${c.id}`} target="_blank">
-                <ExternalLink /> Scoreboard
+                <ExternalLink /> {t('Scoreboard')}
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to={`/board/${c.id}/history`} target="_blank">
-                <ChartLine /> Ranking history
+                <ChartLine /> {t('Ranking history')}
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to={`/admin/contests/${c.id}/reveal`} target="_blank">
-                <Sparkles /> Score revealer
+                <Sparkles /> {t('Score revealer')}
               </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link to={`/admin/submissions?contestId=${c.id}`}>Submissions</Link>
+              <Link to={`/admin/submissions?contestId=${c.id}`}>{t('Submissions')}</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <a href={`/api/admin/contests/${c.id}/results.csv`}>
-                <Download /> Results CSV
+                <Download /> {t('Results CSV')}
               </a>
             </Button>
           </>
@@ -88,10 +89,10 @@ export function AdminContestPage() {
       />
       <Tabs defaultValue="problems">
         <TabsList>
-          <TabsTrigger value="problems">Problems</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="participants">Participants</TabsTrigger>
-          <TabsTrigger value="announcements">Announcements</TabsTrigger>
+          <TabsTrigger value="problems">{t('Problems')}</TabsTrigger>
+          <TabsTrigger value="settings">{t('Settings')}</TabsTrigger>
+          <TabsTrigger value="participants">{t('Participants')}</TabsTrigger>
+          <TabsTrigger value="announcements">{t('Announcements')}</TabsTrigger>
         </TabsList>
         <TabsContent value="problems">
           <ProblemsTab c={c} />
@@ -128,20 +129,20 @@ function ProblemsTab({ c }: { c: AdminContest }) {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-base">Problems</CardTitle>
+        <CardTitle className="text-base">{t('Problems')}</CardTitle>
         <Button size="sm" onClick={() => setOpen(true)}>
-          <Plus /> Add problem
+          <Plus /> {t('Add problem')}
         </Button>
       </CardHeader>
       <Table>
         <THead>
           <TR>
-            <TH>Code</TH>
-            <TH>Title</TH>
-            <TH>Type</TH>
-            <TH>Limits</TH>
-            <TH className="text-right">Tests</TH>
-            {c.scoringMode === 'IOI' && <TH className="text-right">Points</TH>}
+            <TH>{t('Code')}</TH>
+            <TH>{t('Title')}</TH>
+            <TH>{t('Type')}</TH>
+            <TH>{t('Limits')}</TH>
+            <TH className="text-right">{t('Tests')}</TH>
+            {c.scoringMode === 'IOI' && <TH className="text-right">{t('Points')}</TH>}
           </TR>
         </THead>
         <TBody>
@@ -160,37 +161,37 @@ function ProblemsTab({ c }: { c: AdminContest }) {
               </TD>
               <TD>{TYPE_LABEL[p.type]}</TD>
               <TD className="text-xs text-muted-foreground">{p.type === 'OUTPUT_ONLY' ? '—' : `${p.timeLimitMs} ms · ${p.memoryLimitMb} MB`}</TD>
-              <TD className="text-right">{p.testCount || <Badge variant="danger">none</Badge>}</TD>
+              <TD className="text-right">{p.testCount || <Badge variant="danger">{t('none')}</Badge>}</TD>
               {c.scoringMode === 'IOI' && <TD className="text-right font-mono">{score(p.maxScoreCenti, p.scorePrecision)}</TD>}
             </TR>
           ))}
         </TBody>
       </Table>
-      {c.problems.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">No problems yet.</p>}
+      {c.problems.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">{t('No problems yet.')}</p>}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add problem</DialogTitle>
+            <DialogTitle>{t('Add problem')}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-3 gap-3">
-            <Field label="Code">
+            <Field label={t('Code')}>
               <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="A" />
             </Field>
-            <Field label="Title" className="col-span-2">
+            <Field label={t('Title')} className="col-span-2">
               <Input value={title} onChange={(e) => setTitle(e.target.value)} />
             </Field>
-            <Field label="Type" className="col-span-3">
+            <Field label={t('Type')} className="col-span-3">
               <NativeSelect value={type} onChange={(e) => setType(e.target.value as ProblemType)}>
-                <option value="BATCH">Batch (stdin → stdout)</option>
-                <option value="OUTPUT_ONLY">Output-only (contestants upload answers)</option>
-                <option value="INTERACTIVE">Interactive (talks to an interactor)</option>
+                <option value="BATCH">{t('Batch (stdin → stdout)')}</option>
+                <option value="OUTPUT_ONLY">{t('Output-only (contestants upload answers)')}</option>
+                <option value="INTERACTIVE">{t('Interactive (talks to an interactor)')}</option>
               </NativeSelect>
             </Field>
           </div>
           <ErrorBox error={error} />
           <DialogFooter>
             <Button onClick={create} disabled={!code || !title}>
-              Create
+              {t('Create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -226,14 +227,14 @@ function SettingsTab({ c }: { c: AdminContest }) {
         publicScoreboard: f.publicScoreboard,
         balloonPalette: f.balloonPalette,
       });
-      toast.success('Saved');
+      toast.success(t('Saved'));
       qc.invalidateQueries({ queryKey: ['admin-contest', c.id] });
     } catch (e) {
       setError(e);
     }
   };
   const remove = async () => {
-    if (prompt(`Type the contest name to delete it with ALL problems and submissions:\n${c.name}`) !== c.name) return;
+    if (prompt(`${t('Type the contest name to delete it with ALL problems and submissions:')}\n${c.name}`) !== c.name) return;
     await api.del(`/api/admin/contests/${c.id}`);
     nav('/admin');
   };
@@ -241,72 +242,72 @@ function SettingsTab({ c }: { c: AdminContest }) {
   return (
     <Card>
       <CardContent className="grid gap-4 pt-5 md:grid-cols-2">
-        <Field label="Name">
+        <Field label={t('Name')}>
           <Input value={f.name} onChange={(e) => set('name', e.target.value)} />
         </Field>
-        <Field label="Scoring mode" hint={c._count.submissions > 0 ? 'Locked: submissions exist' : undefined}>
+        <Field label={t('Scoring mode')} hint={c._count.submissions > 0 ? t('Locked: submissions exist') : undefined}>
           <NativeSelect value={f.scoringMode} disabled={c._count.submissions > 0} onChange={(e) => set('scoringMode', e.target.value as 'IOI' | 'ICPC')}>
-            <option value="IOI">IOI — subtasks and partial scoring</option>
-            <option value="ICPC">ICPC — binary scoring with penalty</option>
+            <option value="IOI">{t('IOI — subtasks and partial scoring')}</option>
+            <option value="ICPC">{t('ICPC — binary scoring with penalty')}</option>
           </NativeSelect>
         </Field>
-        <Field label="Description" className="md:col-span-2">
+        <Field label={t('Description')} className="md:col-span-2">
           <Textarea value={f.description} onChange={(e) => set('description', e.target.value)} />
         </Field>
-        <Field label="Starts">
+        <Field label={t('Starts')}>
           <Input type="datetime-local" value={toLocalInput(f.startsAt)} onChange={(e) => set('startsAt', fromLocalInput(e.target.value) ?? f.startsAt)} />
         </Field>
-        <Field label="Ends">
+        <Field label={t('Ends')}>
           <Input type="datetime-local" value={toLocalInput(f.endsAt)} onChange={(e) => set('endsAt', fromLocalInput(e.target.value) ?? f.endsAt)} />
         </Field>
-        <Field label="Scoreboard freeze (optional)" hint="After this time the public scoreboard stops updating; teams still see their own results.">
+        <Field label={t('Scoreboard freeze (optional)')} hint={t('After this time the public scoreboard stops updating; teams still see their own results.')}>
           <Input type="datetime-local" value={toLocalInput(f.freezeAt)} onChange={(e) => set('freezeAt', fromLocalInput(e.target.value))} />
         </Field>
         {f.scoringMode === 'IOI' ? (
-          <Field label="Task score" hint="Max per subtask: best result of each subtask across all submissions (IOI 2017+).">
+          <Field label={t('Task score')} hint={t('Max per subtask: best result of each subtask across all submissions (IOI 2017+).')}>
             <NativeSelect value={f.ioiTaskScoreRule} onChange={(e) => set('ioiTaskScoreRule', e.target.value as AdminContest['ioiTaskScoreRule'])}>
-              <option value="MAX_SUBTASK">Max per subtask across submissions</option>
-              <option value="BEST_SUBMISSION">Best single submission</option>
+              <option value="MAX_SUBTASK">{t('Max per subtask across submissions')}</option>
+              <option value="BEST_SUBMISSION">{t('Best single submission')}</option>
             </NativeSelect>
           </Field>
         ) : (
-          <Field label="Penalty per rejected attempt (minutes)">
+          <Field label={t('Penalty per rejected attempt (minutes)')}>
             <Input type="number" min={0} value={f.penaltyMinutes} onChange={(e) => set('penaltyMinutes', Number(e.target.value))} />
           </Field>
         )}
         <Field
-          label="Balloon colors"
+          label={t('Balloon colors')}
           hint={
             f.balloonPalette === 'ICPC'
-              ? `Assigned by problem order: ${ICPC_BALLOON_COLORS.slice(0, 6).map((x) => x.name).join(', ')}, …`
-              : "Pick each problem's color in its Settings; problems without one use the preset color."
+              ? `${t('Assigned by problem order:')} ${ICPC_BALLOON_COLORS.slice(0, 6).map((x) => t(x.name)).join(', ')}, …`
+              : t("Pick each problem's color in its Settings; problems without one use the preset color.")
           }
         >
           <NativeSelect value={f.balloonPalette} onChange={(e) => set('balloonPalette', e.target.value as AdminContest['balloonPalette'])}>
-            <option value="ICPC">ICPC preset (white, black, red, dark red, …)</option>
-            <option value="CUSTOM">Custom color per problem</option>
+            <option value="ICPC">{t('ICPC preset (white, black, red, dark red, …)')}</option>
+            <option value="CUSTOM">{t('Custom color per problem')}</option>
           </NativeSelect>
         </Field>
         <div className="space-y-3">
           <label className="flex items-center gap-3 text-sm">
-            <Switch checked={limitOn} onCheckedChange={setLimitOn} /> Limit submissions per task
+            <Switch checked={limitOn} onCheckedChange={setLimitOn} /> {t('Limit submissions per task')}
           </label>
           {limitOn && <Input type="number" min={1} className="w-32" value={f.maxSubmissionsPerTask ?? 50} onChange={(e) => set('maxSubmissionsPerTask', Number(e.target.value))} />}
         </div>
         <div className="space-y-3">
           <label className="flex items-center gap-3 text-sm">
             <Switch checked={f.countCompileErrors} onCheckedChange={(v) => set('countCompileErrors', v)} />
-            {f.scoringMode === 'ICPC' ? 'Compilation errors count as rejected attempts' : 'Compilation errors count toward the submission limit'}
+            {f.scoringMode === 'ICPC' ? t('Compilation errors count as rejected attempts') : t('Compilation errors count toward the submission limit')}
           </label>
           <label className="flex items-center gap-3 text-sm">
-            <Switch checked={f.visible} onCheckedChange={(v) => set('visible', v)} /> Visible to participants
+            <Switch checked={f.visible} onCheckedChange={(v) => set('visible', v)} /> {t('Visible to participants')}
           </label>
           <label className="flex items-center gap-3 text-sm">
-            <Switch checked={f.publicScoreboard} onCheckedChange={(v) => set('publicScoreboard', v)} /> Scoreboard visible to teams and without login
+            <Switch checked={f.publicScoreboard} onCheckedChange={(v) => set('publicScoreboard', v)} /> {t('Scoreboard visible to teams and without login')}
           </label>
         </div>
         <div className="space-y-2">
-          <div className="text-sm font-medium">Languages</div>
+          <div className="text-sm font-medium">{t('Languages')}</div>
           {['cpp', 'python'].map((l) => (
             <label key={l} className="flex items-center gap-3 text-sm">
               <Switch checked={f.languages.includes(l)} onCheckedChange={() => toggleLang(l)} /> {l === 'cpp' ? 'C++20 (g++ -O3 -std=gnu++20)' : 'Python 3'}
@@ -318,9 +319,9 @@ function SettingsTab({ c }: { c: AdminContest }) {
         </div>
         <div className="flex justify-between md:col-span-2">
           <Button variant="destructive" onClick={remove}>
-            <Trash2 /> Delete contest
+            <Trash2 /> {t('Delete contest')}
           </Button>
-          <Button onClick={save}>Save settings</Button>
+          <Button onClick={save}>{t('Save settings')}</Button>
         </div>
       </CardContent>
     </Card>
@@ -343,7 +344,7 @@ function ParticipantsTab({ cid }: { cid: string }) {
   const refresh = () => qc.invalidateQueries({ queryKey: ['admin-participants', cid] });
   const add = async (body: object) => {
     const r = await api.post<{ added: number }>(`/api/admin/contests/${cid}/participants`, body);
-    toast.success(`Added ${r.added}`);
+    toast.success(t('Added {n}', { n: r.added }));
     refresh();
   };
   const patch = async (uid: string, body: object) => {
@@ -351,7 +352,7 @@ function ParticipantsTab({ cid }: { cid: string }) {
     refresh();
   };
   const remove = async (p: Participant) => {
-    if (!confirm(`Remove ${p.user.username} from this contest?`)) return;
+    if (!confirm(t('Remove {u} from this contest?', { u: p.user.username }))) return;
     await api.del(`/api/admin/contests/${cid}/participants/${p.userId}`);
     refresh();
   };
@@ -361,10 +362,10 @@ function ParticipantsTab({ cid }: { cid: string }) {
   return (
     <Card>
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
-        <CardTitle className="text-base">Participants ({q.data?.length})</CardTitle>
+        <CardTitle className="text-base">{t('Participants')} ({q.data?.length})</CardTitle>
         <div className="flex gap-2">
           <NativeSelect className="w-56" value={pick} onChange={(e) => setPick(e.target.value)}>
-            <option value="">Choose a team…</option>
+            <option value="">{t('Choose a team…')}</option>
             {candidates.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.username} — {u.displayName}
@@ -372,22 +373,22 @@ function ParticipantsTab({ cid }: { cid: string }) {
             ))}
           </NativeSelect>
           <Button size="sm" variant="outline" disabled={!pick} onClick={() => add({ userIds: [pick] }).then(() => setPick(''))}>
-            <UserPlus /> Add
+            <UserPlus /> {t('Add')}
           </Button>
           <Button size="sm" onClick={() => add({ allContestants: true })}>
-            Add all teams
+            {t('Add all teams')}
           </Button>
         </div>
       </CardHeader>
       <Table>
         <THead>
           <TR>
-            <TH>Username</TH>
-            <TH>Team</TH>
-            <TH>Organization</TH>
-            <TH title="Personal start delay, for late arrivals">Start delay (min)</TH>
-            <TH title="Extra minutes at the end">Extra time (min)</TH>
-            <TH>Hidden</TH>
+            <TH>{t('Username')}</TH>
+            <TH>{t('Team')}</TH>
+            <TH>{t('Organization')}</TH>
+            <TH title={t('Personal start delay, for late arrivals')}>{t('Start delay (min)')}</TH>
+            <TH title={t('Extra minutes at the end')}>{t('Extra time (min)')}</TH>
+            <TH>{t('Hidden')}</TH>
             <TH />
           </TR>
         </THead>
@@ -427,7 +428,7 @@ function AnnouncementsTab({ c }: { c: AdminContest }) {
     await api.post(`/api/admin/contests/${c.id}/announcements`, { title, body });
     setTitle('');
     setBody('');
-    toast.success('Announcement sent to all teams');
+    toast.success(t('Announcement sent to all teams'));
     qc.invalidateQueries({ queryKey: ['admin-contest', c.id] });
   };
   const remove = async (id: string) => {
@@ -438,17 +439,17 @@ function AnnouncementsTab({ c }: { c: AdminContest }) {
     <div className="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">New announcement</CardTitle>
+          <CardTitle className="text-base">{t('New announcement')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Field label="Title">
+          <Field label={t('Title')}>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
-          <Field label="Message">
+          <Field label={t('Message')}>
             <Textarea className="h-32" value={body} onChange={(e) => setBody(e.target.value)} />
           </Field>
           <Button onClick={post} disabled={!title}>
-            Publish
+            {t('Publish')}
           </Button>
         </CardContent>
       </Card>

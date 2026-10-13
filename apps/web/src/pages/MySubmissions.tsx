@@ -6,20 +6,21 @@ import { Card } from '@/components/ui/card';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, LanguageName, PageHeader, Spinner, StatusBadge } from '@/components/common';
 import { fmtTime, score } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 export function SubmissionsTable({ items, ioi, showUser }: { items: SubmissionItem[]; ioi: boolean; showUser?: boolean }) {
   return (
     <Table>
       <THead>
         <TR>
-          <TH>Time</TH>
-          {showUser && <TH>Team</TH>}
-          <TH>Problem</TH>
-          <TH>Language</TH>
-          <TH>Result</TH>
-          {ioi && <TH className="text-right">Score</TH>}
-          <TH className="text-right">Time</TH>
-          <TH className="text-right">Memory</TH>
+          <TH>{t('Submitted')}</TH>
+          {showUser && <TH>{t('Team')}</TH>}
+          <TH>{t('Problem')}</TH>
+          <TH>{t('Language')}</TH>
+          <TH>{t('Result')}</TH>
+          {ioi && <TH className="text-right">{t('Score')}</TH>}
+          <TH className="text-right">{t('Time')}</TH>
+          <TH className="text-right">{t('Memory')}</TH>
         </TR>
       </THead>
       <TBody>
@@ -59,11 +60,11 @@ export function MySubmissionsPage() {
   if (q.isLoading) return <Spinner />;
   return (
     <div>
-      <PageHeader title="My submissions" subtitle={contest.data?.name} />
+      <PageHeader title={t('My submissions')} subtitle={contest.data?.name} />
       <ErrorBox error={q.error} />
       <Card>
         <SubmissionsTable items={q.data ?? []} ioi={contest.data?.scoringMode !== 'ICPC'} />
-        {q.data?.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">No submissions yet.</p>}
+        {q.data?.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">{t('No submissions yet.')}</p>}
       </Card>
     </div>
   );

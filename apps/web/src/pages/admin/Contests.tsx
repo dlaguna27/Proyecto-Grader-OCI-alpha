@@ -12,6 +12,7 @@ import { Field } from '@/components/ui/label';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { ErrorBox, PageHeader, Spinner } from '@/components/common';
 import { fmtTime, fromLocalInput, toLocalInput } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 interface AdminContest {
   id: string;
@@ -31,10 +32,10 @@ export function AdminContestsPage() {
   return (
     <div>
       <PageHeader
-        title="Contests"
+        title={t('Contests')}
         actions={
           <Button onClick={() => setOpen(true)}>
-            <Plus /> New contest
+            <Plus /> {t('New contest')}
           </Button>
         }
       />
@@ -43,13 +44,13 @@ export function AdminContestsPage() {
         <Table>
           <THead>
             <TR>
-              <TH>Name</TH>
-              <TH>Mode</TH>
-              <TH>Window</TH>
-              <TH>Status</TH>
-              <TH className="text-right">Problems</TH>
-              <TH className="text-right">Teams</TH>
-              <TH className="text-right">Submissions</TH>
+              <TH>{t('Name')}</TH>
+              <TH>{t('Mode')}</TH>
+              <TH>{t('Window')}</TH>
+              <TH>{t('Status')}</TH>
+              <TH className="text-right">{t('Problems')}</TH>
+              <TH className="text-right">{t('Teams')}</TH>
+              <TH className="text-right">{t('Submissions')}</TH>
             </TR>
           </THead>
           <TBody>
@@ -62,7 +63,7 @@ export function AdminContestsPage() {
                     <Link to={`/admin/contests/${c.id}`} className="font-medium text-primary hover:underline">
                       {c.name}
                     </Link>
-                    {!c.visible && <Badge variant="muted" className="ml-2">hidden</Badge>}
+                    {!c.visible && <Badge variant="muted" className="ml-2">{t('hidden')}</Badge>}
                   </TD>
                   <TD>
                     <Badge variant={c.scoringMode === 'IOI' ? 'info' : 'warning'}>{c.scoringMode}</Badge>
@@ -70,7 +71,7 @@ export function AdminContestsPage() {
                   <TD className="text-xs text-muted-foreground">
                     {fmtTime(c.startsAt)} – {fmtTime(c.endsAt)}
                   </TD>
-                  <TD>{now < s ? <Badge variant="muted">Upcoming</Badge> : now < e ? <Badge variant="success">Running</Badge> : <Badge variant="secondary">Finished</Badge>}</TD>
+                  <TD>{now < s ? <Badge variant="muted">{t('Upcoming')}</Badge> : now < e ? <Badge variant="success">{t('In progress')}</Badge> : <Badge variant="secondary">{t('Finished')}</Badge>}</TD>
                   <TD className="text-right">{c._count.problems}</TD>
                   <TD className="text-right">{c._count.participants}</TD>
                   <TD className="text-right">{c._count.submissions}</TD>
@@ -79,7 +80,7 @@ export function AdminContestsPage() {
             })}
           </TBody>
         </Table>
-        {q.data?.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">No contests yet. Create one to get started.</p>}
+        {q.data?.length === 0 && <p className="p-6 text-center text-sm text-muted-foreground">{t('No contests yet. Create one to get started.')}</p>}
       </Card>
       <NewContestDialog open={open} onOpenChange={setOpen} />
     </div>
@@ -107,26 +108,26 @@ function NewContestDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New contest</DialogTitle>
+          <DialogTitle>{t('New contest')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <Field label="Name">
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="NOI 2026 — Day 1" />
+          <Field label={t('Name')}>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="OCI 2026" />
           </Field>
           <Field
-            label="Scoring mode"
-            hint={mode === 'IOI' ? 'Subtasks with partial scores; 50 submissions per task by default.' : 'Accepted/rejected with time penalty; unlimited submissions.'}
+            label={t('Scoring mode')}
+            hint={mode === 'IOI' ? t('Subtasks with partial scores; 50 submissions per task by default.') : t('Accepted/rejected with time penalty; unlimited submissions.')}
           >
             <NativeSelect value={mode} onChange={(e) => setMode(e.target.value as 'IOI' | 'ICPC')}>
-              <option value="IOI">IOI — subtasks and partial scoring</option>
-              <option value="ICPC">ICPC — binary scoring with penalty</option>
+              <option value="IOI">{t('IOI — subtasks and partial scoring')}</option>
+              <option value="ICPC">{t('ICPC — binary scoring with penalty')}</option>
             </NativeSelect>
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Starts">
+            <Field label={t('Starts')}>
               <Input type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
             </Field>
-            <Field label="Ends">
+            <Field label={t('Ends')}>
               <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
             </Field>
           </div>
@@ -134,7 +135,7 @@ function NewContestDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
         </div>
         <DialogFooter>
           <Button onClick={create} disabled={!name}>
-            Create
+            {t('Create')}
           </Button>
         </DialogFooter>
       </DialogContent>
