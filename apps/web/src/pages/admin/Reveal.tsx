@@ -154,7 +154,7 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
           <div className="min-w-0 flex-1">
             <div className="truncate text-xl font-semibold">{d.contest.name}</div>
             <div className="truncate text-sm text-muted-foreground">
-              {i === 0 ? t('Press Space to start') : i === last ? t('Final ranking') : focusTeam ? `${focusTeam.displayName}${step.focus?.problemId ? ` — ${problems.find((p) => p.id === step.focus!.problemId)?.code}` : ` — ${t('final position')}`}` : ''}
+              {i === 0 ? t('Press Space to start') : i === last ? t('Final ranking') : focusTeam ? `${focusTeam.displayName}${step.focus?.problemId ? ` — ${problems.find((p) => p.id === step.focus!.problemId)?.code}` : step.focus?.phase === 'final' ? ` — ${t('final position')}` : ''}` : ''}
               <span className="ml-2 text-xs">({i}/{last})</span>
             </div>
           </div>
@@ -181,6 +181,7 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
           const p = pos.get(r.userId)!;
           const cells = step.cells[r.userId];
           const isFocus = step.focus?.userId === r.userId;
+          const moved = step.focus?.phase === 'reveal';
           const done = finalized.has(r.userId);
           const showRank = start === 'FROZEN' || done;
           let total = 0;
@@ -200,7 +201,7 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
                 'absolute inset-x-0 grid items-center gap-2 rounded-lg border px-0 text-lg transition-[transform,background-color] duration-700 ease-in-out',
                 isFocus ? 'z-10 border-primary bg-primary/10 shadow-lg' : done ? 'bg-card' : 'bg-muted/40',
               )}
-              style={{ gridTemplateColumns: cols, height: ROW_H - 6, transform: `translateY(${p.k * ROW_H}px)` }}
+              style={{ gridTemplateColumns: cols, height: ROW_H - 6, transform: `translateY(${p.k * ROW_H}px)`, transitionDelay: moved ? '900ms, 0ms' : undefined }}
             >
               <div className={cn('text-center font-mono text-2xl font-bold', !showRank && 'text-muted-foreground/40', done && p.rank <= 3 && 'text-amber-500')}>
                 {showRank ? p.rank : '–'}
@@ -211,11 +212,17 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
               </div>
               {problems.map((pr) => {
                 const c = cells[pr.id];
-                const flash = isFocus && step.focus?.problemId === pr.id;
+                const target = isFocus && step.focus?.problemId === pr.id;
+                const flash = target && step.focus?.phase === 'reveal';
                 return (
                   <div
                     key={pr.id + (flash ? `:${i}` : '')}
-                    className={cn('flex h-10 items-center justify-center rounded-md font-mono', cellClass(c, ioi), flash && 'animate-in zoom-in-50 ring-4 ring-amber-400 duration-500')}
+                    className={cn(
+                      'flex h-10 items-center justify-center rounded-md font-mono',
+                      cellClass(c, ioi),
+                      target && !flash && 'animate-pulse ring-4 ring-amber-400',
+                      flash && 'animate-in zoom-in-50 ring-4 ring-amber-400 duration-500',
+                    )}
                     style={ioi ? cellStyle(c as IoiCell, pr.maxScoreCenti, pr.color) : undefined}
                   >
                     {renderCell(c, ioi, pr.scorePrecision, pr.color)}
