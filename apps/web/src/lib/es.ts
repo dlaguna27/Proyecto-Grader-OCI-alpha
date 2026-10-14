@@ -94,7 +94,7 @@ export const ES: Record<string, string> = {
   "Empty": "Vacío",
   "Ends": "Fin",
   "Error": "Error",
-  "Every team starts at 0. Teams are revealed in order of final position, last place first; each step reveals one problem of the current team, and the winner is revealed last.": "Todos los equipos empiezan en 0. Se revelan en orden de posición final, empezando por el último; cada paso revela un problema del equipo actual y el ganador se revela al final.",
+  "Every team starts at 0. Teams are revealed in order of final position, last place first: the team is marked, then each problem is marked and its result revealed, one key press each. The winner is revealed last.": "Todos los equipos empiezan en 0. Se revelan en orden de posición final, empezando por el último lugar: se marca el equipo y luego cada problema se marca y se revela su resultado, una tecla cada vez. El ganador se revela al final.",
   "Exact tokens (ignores whitespace)": "Tokens exactos (ignora espacios)",
   "Examples": "Ejemplos",
   "Extra files for contestants: graders, headers, sample files.": "Archivos extra para los concursantes: graders, encabezados, archivos de ejemplo.",

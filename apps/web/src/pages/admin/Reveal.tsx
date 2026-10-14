@@ -63,7 +63,7 @@ function RevealSetup({ d, onStart, onReload }: { d: RevealData; onStart: (s: Sta
         <Card className="p-5">
           <h2 className="font-semibold">{t('From zero (all results hidden)')}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t('Every team starts at 0. Teams are revealed in order of final position, last place first; each step reveals one problem of the current team, and the winner is revealed last.')}
+            {t('Every team starts at 0. Teams are revealed in order of final position, last place first: the team is marked, then each problem is marked and its result revealed, one key press each. The winner is revealed last.')}
           </p>
           <Button className="mt-4" onClick={() => onStart('ZERO')}>{t('Start')}</Button>
         </Card>
