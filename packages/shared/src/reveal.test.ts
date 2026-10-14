@@ -25,14 +25,26 @@ describe('reveal', () => {
     expect(last.order).toEqual(rankRevealCells('IOI', teams, Object.fromEntries(teams.map((t) => [t.userId, t.after]))));
     expect(last.order.map((r) => r.userId)).toEqual(['a', 'b', 'c']);
     expect(last.finalized).toEqual(['c', 'b', 'a']);
-    // c (last) is revealed first, then finalized; then a (now last) reveals q and climbs to first.
+    // c (last) is marked, its problem marked, then revealed, then finalized; then a (now last)
+    // reveals q and climbs to first. Cells and ranks change only on reveal steps.
     expect(steps.slice(1).map((s) => s.focus)).toEqual([
-      { userId: 'c', problemId: 'p' },
-      { userId: 'c', problemId: null },
-      { userId: 'a', problemId: 'q' },
-      { userId: 'b', problemId: null },
-      { userId: 'a', problemId: null },
+      { userId: 'c', problemId: null, phase: 'team' },
+      { userId: 'c', problemId: 'p', phase: 'problem' },
+      { userId: 'c', problemId: 'p', phase: 'reveal' },
+      { userId: 'c', problemId: null, phase: 'final' },
+      { userId: 'a', problemId: null, phase: 'team' },
+      { userId: 'a', problemId: 'q', phase: 'problem' },
+      { userId: 'a', problemId: 'q', phase: 'reveal' },
+      { userId: 'b', problemId: null, phase: 'final' },
+      { userId: 'a', problemId: null, phase: 'final' },
     ]);
+    for (let k = 1; k < steps.length; k++) {
+      if (steps[k].focus!.phase === 'reveal') continue;
+      expect(steps[k].cells).toBe(steps[k - 1].cells);
+      expect(steps[k].order).toEqual(steps[k - 1].order);
+    }
+    expect(steps[6].order.map((r) => r.userId)).toEqual(['b', 'a', 'c']);
+    expect(steps[7].order.map((r) => r.userId)).toEqual(['a', 'b', 'c']);
   });
 
   it('FINAL_RANK order reveals teams from final last place to the winner', () => {

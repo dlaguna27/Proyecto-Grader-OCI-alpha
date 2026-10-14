@@ -27,12 +27,18 @@ export interface RevealTeam<C> {
   after: Record<string, C>;
 }
 
+/**
+ * team: the team about to be worked on is marked; problem: its next hidden cell is marked;
+ * reveal: that cell shows its final result and the ranking updates; final: the team is finalized.
+ */
+export type RevealPhase = 'team' | 'problem' | 'reveal' | 'final';
+
 export interface RevealStep<C> {
   cells: Record<string, Record<string, C>>;
   order: { userId: string; rank: number }[];
   finalized: string[];
-  /** Team (and revealed problem, or null when the team was finalized) touched by this step. */
-  focus: { userId: string; problemId: string | null } | null;
+  /** Team (and problem, for the problem/reveal phases) touched by this step. */
+  focus: { userId: string; problemId: string | null; phase: RevealPhase } | null;
 }
 
 /**
@@ -85,9 +91,9 @@ export function rankRevealCells<C extends RevealIoiCell | RevealIcpcCell>(
 }
 
 /**
- * Precomputes every step of a closing-ceremony reveal. Each step reveals one hidden cell of the
- * team being worked on, or finalizes that team once nothing of it is hidden. The last step's
- * cells equal the `after` cells of every team.
+ * Precomputes every step of a closing-ceremony reveal, one per key press: mark the team, mark its
+ * next hidden problem, reveal that problem (the ranking updates), repeat; a team with nothing left
+ * hidden is finalized. The last step's cells equal the `after` cells of every team.
  */
 export function buildRevealSteps<C extends RevealIoiCell | RevealIcpcCell>(
   mode: Mode,
@@ -101,6 +107,7 @@ export function buildRevealSteps<C extends RevealIoiCell | RevealIcpcCell>(
   const finalOrder = rankRevealCells(mode, teams, Object.fromEntries(teams.map((t) => [t.userId, t.after])));
   const finalized: string[] = [];
   const done = new Set<string>();
+  let marked: string | null = null;
   let order = rankRevealCells(mode, teams, cells);
   const steps: RevealStep<C>[] = [{ cells, order, finalized: [], focus: null }];
   for (;;) {
@@ -109,14 +116,21 @@ export function buildRevealSteps<C extends RevealIoiCell | RevealIcpcCell>(
     if (!target) break;
     const team = byId.get(target.userId)!;
     const pid = problemIds.find((p) => team.after[p] && !sameCell(mode, cells[team.userId][p], team.after[p]));
+    const push = (problemId: string | null, phase: RevealPhase) =>
+      steps.push({ cells, order, finalized: [...finalized], focus: { userId: team.userId, problemId, phase } });
     if (pid) {
+      if (marked !== team.userId) push(null, 'team');
+      marked = team.userId;
+      push(pid, 'problem');
       cells = { ...cells, [team.userId]: { ...cells[team.userId], [pid]: team.after[pid] } };
       order = rankRevealCells(mode, teams, cells);
+      push(pid, 'reveal');
     } else {
       done.add(team.userId);
       finalized.push(team.userId);
+      marked = null;
+      push(null, 'final');
     }
-    steps.push({ cells, order, finalized: [...finalized], focus: { userId: team.userId, problemId: pid ?? null } });
   }
   return steps;
 }

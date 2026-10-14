@@ -83,7 +83,7 @@ Every 30–60 minutes run `.\scripts\backup.ps1` (safe while running) and copy t
 2. Handle appeals: open a submission (note the badge shows the worst test verdict, so a *Wrong answer* submission can still have partial points — read the score) to see every test's verdict, time, memory and checker message.
 3. **Closing ceremony — score revealer.** On the projector PC, log in as admin, open the contest and click **Score revealer** (it opens in a new tab; teams can't open it).
    - Pick **From the frozen scoreboard** (only hidden post-freeze results are revealed, always working on the lowest team still unconfirmed) or **From zero** (every team starts at 0 and teams are revealed from last place to the winner).
-   - Press **F** for full-screen, then **Space** / **→** for each step. **←** goes back a step, **End** jumps to the final ranking. The winner is always the last team revealed.
+   - Press **F** for full-screen, then **Space** / **→** for each step. Each hidden result takes three presses: the team is marked, then the problem being revealed blinks, then its result appears and the team moves to its new position. A team with nothing left hidden is confirmed in its final position with one press. **←** goes back a step, **End** jumps to the final ranking. The winner is always the last team revealed.
    - Results are loaded when the page opens, so open it only after Queue shows 0 waiting and all rejudges are done (or click *reload them* on the start page).
    - Rehearse once before the ceremony: closing the tab or pressing ✕ loses nothing, you can start again.
 4. After the reveal, unfreeze by clearing the freeze time in contest Settings. The public scoreboard and *Ranking history* chart then show the final standings for everyone.
