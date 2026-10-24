@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { Countdown, ErrorBox, PageHeader, Spinner } from '@/components/common';
-import { cn, fmtClock, score } from '@/lib/utils';
+import { cn, fmtClock, fmtDuration, score } from '@/lib/utils';
 import { useLiveUpdates } from '@/lib/events';
 import { ScoreboardTabs } from './RankingHistory';
 import { Balloon, ioiCellStyle } from '@/components/Balloon';
@@ -121,7 +121,12 @@ function BoardView({ q, big, nav }: { q: ReturnType<typeof useQuery<Board>>; big
                   );
                 })}
                 {ioi ? (
-                  <TD className="text-right font-mono font-semibold">{score(r.totalCenti ?? 0, maxPrec)}</TD>
+                  <TD className="text-right font-mono font-semibold">
+                    {score(r.totalCenti ?? 0, maxPrec)}
+                    {b.ioiTieBreak === 'TIME' && r.reachedAtMs != null && (
+                      <div className="text-xs font-normal text-muted-foreground" title={t('Time the team reached this total')}>{fmtDuration(r.reachedAtMs)}</div>
+                    )}
+                  </TD>
                 ) : (
                   <>
                     <TD className="text-center font-semibold">{r.solved}</TD>

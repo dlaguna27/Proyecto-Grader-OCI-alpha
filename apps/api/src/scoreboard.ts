@@ -2,9 +2,11 @@ import {
   assignBalloonColors,
   assignRanks,
   compareIcpcTotals,
+  compareIoiTotals,
   icpcProblemState,
   icpcTotals,
   ioiTaskScore,
+  ioiTaskScoreReached,
   type IcpcOutcome,
   type IcpcSubmission,
   type IcpcProblemState,
@@ -26,6 +28,8 @@ export interface IoiCell {
   scoreCenti: number;
   attempts: number;
   pending: number;
+  /** When the task score reached its current value, relative to the team's start (null at 0). */
+  reachedAtMs: number | null;
 }
 
 export interface BoardRow {
@@ -38,6 +42,8 @@ export interface BoardRow {
   region: string;
   /** IOI */
   totalCenti?: number;
+  /** IOI: when the total reached its current value, relative to the team's start (null at 0). */
+  reachedAtMs?: number | null;
   ioi?: Record<string, IoiCell>;
   /** ICPC */
   solved?: number;
@@ -50,6 +56,7 @@ export type IcpcCell = IcpcProblemState & { firstSolve: boolean; acElapsedMs: nu
 export interface Board {
   contestId: string;
   mode: 'IOI' | 'ICPC';
+  ioiTieBreak: 'TIME' | 'SHARED';
   frozen: boolean;
   freezeAt: string | null;
   generatedAt: string;
@@ -151,9 +158,10 @@ async function computeScoreboard(contestId: string, opts: { includeHidden: boole
       const freezeMs = w.start.getTime() + freezeOffset;
       const ioi: Record<string, IoiCell> = {};
       let total = 0;
+      let reached: number | null = null;
       for (const p of problems) {
         const list = byUserProblem.get(`${part.userId}:${p.id}`) ?? [];
-        const scored: SubmissionScore[] = [];
+        const scored: { atMs: number; score: SubmissionScore }[] = [];
         let pending = 0;
         for (const s of list) {
           const j = s.judgements[0];
@@ -163,28 +171,34 @@ async function computeScoreboard(contestId: string, opts: { includeHidden: boole
             continue;
           }
           if (j.status === 'DONE' && j.scoreCenti !== null) {
-            scored.push({ totalCenti: j.scoreCenti, subtasks: (j.subtaskScores ?? []) as SubmissionScore['subtasks'] });
+            scored.push({
+              atMs: wholeSecondsMs(s.submittedAt.getTime() - w.start.getTime()),
+              score: { totalCenti: j.scoreCenti, subtasks: (j.subtaskScores ?? []) as SubmissionScore['subtasks'] },
+            });
           }
         }
-        const t = ioiTaskScore(contest.ioiTaskScoreRule, scored);
-        ioi[p.id] = { scoreCenti: t.totalCenti, attempts: list.length, pending };
+        const t = ioiTaskScoreReached(contest.ioiTaskScoreRule, scored);
+        ioi[p.id] = { scoreCenti: t.totalCenti, attempts: list.length, pending, reachedAtMs: t.reachedAtMs };
         total += t.totalCenti;
+        if (t.reachedAtMs !== null) reached = Math.max(reached ?? 0, t.reachedAtMs);
       }
-      return { part, totalCenti: total, ioi };
+      return { part, totalCenti: total, reachedAtMs: reached, ioi };
     });
     const ranked = assignRanks(
       rows,
-      (a, b) => b.totalCenti - a.totalCenti,
+      (a, b) => compareIoiTotals(a, b, contest.ioiTieBreak),
       (a, b) => a.part.user.displayName.localeCompare(b.part.user.displayName),
+      contest.ioiTieBreak === 'TIME',
     );
     return {
       contestId,
       mode: 'IOI',
+      ioiTieBreak: contest.ioiTieBreak,
       frozen,
       freezeAt: contest.freezeAt?.toISOString() ?? null,
       generatedAt: new Date().toISOString(),
       problems: boardProblems,
-      rows: ranked.map(({ row, rank }) => ({ rank, ...userFields(row.part.user), totalCenti: row.totalCenti, ioi: row.ioi })),
+      rows: ranked.map(({ row, rank }) => ({ rank, ...userFields(row.part.user), totalCenti: row.totalCenti, reachedAtMs: row.reachedAtMs, ioi: row.ioi })),
     };
   }
 
@@ -234,6 +248,7 @@ async function computeScoreboard(contestId: string, opts: { includeHidden: boole
   return {
     contestId,
     mode: 'ICPC',
+    ioiTieBreak: contest.ioiTieBreak,
     frozen,
     freezeAt: contest.freezeAt?.toISOString() ?? null,
     generatedAt: new Date().toISOString(),
@@ -335,6 +350,7 @@ async function computeRankHistory(contestId: string, full: boolean): Promise<Ran
     const ioiLists: SubmissionScore[][] = problems.map(() => []);
     const icpcLists: IcpcSubmission[][] = problems.map(() => []);
     const taskScores = problems.map(() => 0);
+    const taskReached = problems.map(() => 0);
     const icpcCells: IcpcProblemState[] = problems.map(() => icpcProblemState([], { startMs: 0, penaltyPerReject: 0 }));
     const totals: Totals[] = [];
     let cur: Totals = { score: 0, penalty: 0, lastAc: 0 };
@@ -343,16 +359,22 @@ async function computeRankHistory(contestId: string, full: boolean): Promise<Ran
       const dirty = new Set<number>();
       while (k < events.length && events[k].at < cutoff(m)) {
         const e = events[k++];
-        if (e.ioi) ioiLists[e.pi].push(e.ioi);
+        if (e.ioi) {
+          ioiLists[e.pi].push(e.ioi);
+          const s = ioiTaskScore(contest.ioiTaskScoreRule, ioiLists[e.pi]).totalCenti;
+          if (s > taskScores[e.pi]) {
+            taskScores[e.pi] = s;
+            taskReached[e.pi] = wholeSecondsMs(e.at);
+          }
+        }
         if (e.icpc) icpcLists[e.pi].push(e.icpc);
         dirty.add(e.pi);
       }
       if (dirty.size) {
         for (const pi of dirty) {
-          if (ioi) taskScores[pi] = ioiTaskScore(contest.ioiTaskScoreRule, ioiLists[pi]).totalCenti;
-          else icpcCells[pi] = icpcProblemState(icpcLists[pi], { startMs: 0, penaltyPerReject: contest.penaltyMinutes, countCompileErrors: contest.countCompileErrors });
+          if (!ioi) icpcCells[pi] = icpcProblemState(icpcLists[pi], { startMs: 0, penaltyPerReject: contest.penaltyMinutes, countCompileErrors: contest.countCompileErrors });
         }
-        if (ioi) cur = { score: taskScores.reduce((a, b) => a + b, 0), penalty: 0, lastAc: 0 };
+        if (ioi) cur = { score: taskScores.reduce((a, b) => a + b, 0), penalty: 0, lastAc: Math.max(0, ...taskReached.filter((_, i) => taskScores[i] > 0)) };
         else {
           const t = icpcTotals(icpcCells);
           cur = { score: t.solved, penalty: t.penalty, lastAc: t.lastAcAtMs };
@@ -365,7 +387,7 @@ async function computeRankHistory(contestId: string, full: boolean): Promise<Ran
 
   type Row = { i: number; t: Totals };
   const cmp = ioi
-    ? (a: Row, b: Row) => b.t.score - a.t.score
+    ? (a: Row, b: Row) => compareIoiTotals({ totalCenti: a.t.score, reachedAtMs: a.t.lastAc }, { totalCenti: b.t.score, reachedAtMs: b.t.lastAc }, contest.ioiTieBreak)
     : (a: Row, b: Row) => compareIcpcTotals({ solved: a.t.score, penalty: a.t.penalty, lastAcAtMs: a.t.lastAc }, { solved: b.t.score, penalty: b.t.penalty, lastAcAtMs: b.t.lastAc });
   const ranks: number[][] = perUser.map(() => []);
   for (let m = 0; m <= lastMinute; m++) {
@@ -373,6 +395,7 @@ async function computeRankHistory(contestId: string, full: boolean): Promise<Ran
       perUser.map((u, i) => ({ i, t: u.totals[m] })),
       cmp,
       (a, b) => perUser[a.i].part.user.displayName.localeCompare(perUser[b.i].part.user.displayName),
+      ioi && contest.ioiTieBreak === 'TIME',
     );
     for (const { row, rank } of ranked) ranks[row.i].push(rank);
   }
@@ -396,4 +419,9 @@ async function computeRankHistory(contestId: string, full: boolean): Promise<Ran
       ...(ioi ? {} : { penalties: u.totals.map((t) => t.penalty) }),
     })),
   };
+}
+
+/** IOI tie-break times are compared at whole seconds, so teams shown with the same time are ordered by name. */
+function wholeSecondsMs(ms: number): number {
+  return Math.max(0, Math.floor(ms / 1000) * 1000);
 }

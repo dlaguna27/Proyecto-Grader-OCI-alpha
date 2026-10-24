@@ -1,10 +1,13 @@
 import { compareIcpcTotals } from './icpc.js';
+import { compareIoiTotals, type IoiTieBreak } from './ioi.js';
 import { assignRanks } from './rank.js';
 
 export interface RevealIoiCell {
   scoreCenti: number;
   attempts: number;
   pending: number;
+  /** When the task score reached its current value (for IOI time tie-breaks). */
+  reachedAtMs?: number | null;
 }
 
 export interface RevealIcpcCell {
@@ -65,11 +68,13 @@ export function rankRevealCells<C extends RevealIoiCell | RevealIcpcCell>(
   mode: Mode,
   teams: readonly { userId: string; displayName: string }[],
   cells: Record<string, Record<string, C>>,
+  ioiTieBreak: IoiTieBreak = 'SHARED',
 ): { userId: string; rank: number }[] {
   const rows = teams.map((t) => {
     const cs = Object.values(cells[t.userId] ?? {});
     if (mode === 'IOI') {
-      return { t, a: (cs as RevealIoiCell[]).reduce((s, c) => s + c.scoreCenti, 0), b: 0, c: 0 };
+      const ioi = cs as RevealIoiCell[];
+      return { t, a: ioi.reduce((s, c) => s + c.scoreCenti, 0), b: 0, c: Math.max(0, ...ioi.map((c) => (c.scoreCenti > 0 ? (c.reachedAtMs ?? 0) : 0))) };
     }
     let solved = 0;
     let penalty = 0;
@@ -85,9 +90,9 @@ export function rankRevealCells<C extends RevealIoiCell | RevealIcpcCell>(
   type Row = (typeof rows)[number];
   const cmp =
     mode === 'IOI'
-      ? (x: Row, y: Row) => y.a - x.a
+      ? (x: Row, y: Row) => compareIoiTotals({ totalCenti: x.a, reachedAtMs: x.c }, { totalCenti: y.a, reachedAtMs: y.c }, ioiTieBreak)
       : (x: Row, y: Row) => compareIcpcTotals({ solved: x.a, penalty: x.b, lastAcAtMs: x.c }, { solved: y.a, penalty: y.b, lastAcAtMs: y.c });
-  return assignRanks(rows, cmp, (x, y) => x.t.displayName.localeCompare(y.t.displayName)).map(({ row, rank }) => ({ userId: row.t.userId, rank }));
+  return assignRanks(rows, cmp, (x, y) => x.t.displayName.localeCompare(y.t.displayName), mode === 'IOI' && ioiTieBreak === 'TIME').map(({ row, rank }) => ({ userId: row.t.userId, rank }));
 }
 
 /**
@@ -100,15 +105,16 @@ export function buildRevealSteps<C extends RevealIoiCell | RevealIcpcCell>(
   problemIds: readonly string[],
   teams: readonly RevealTeam<C>[],
   orderRule: RevealOrder,
+  ioiTieBreak: IoiTieBreak = 'SHARED',
 ): RevealStep<C>[] {
   let cells: Record<string, Record<string, C>> = {};
   for (const t of teams) cells[t.userId] = { ...t.before };
   const byId = new Map(teams.map((t) => [t.userId, t]));
-  const finalOrder = rankRevealCells(mode, teams, Object.fromEntries(teams.map((t) => [t.userId, t.after])));
+  const finalOrder = rankRevealCells(mode, teams, Object.fromEntries(teams.map((t) => [t.userId, t.after])), ioiTieBreak);
   const finalized: string[] = [];
   const done = new Set<string>();
   let marked: string | null = null;
-  let order = rankRevealCells(mode, teams, cells);
+  let order = rankRevealCells(mode, teams, cells, ioiTieBreak);
   const steps: RevealStep<C>[] = [{ cells, order, finalized: [], focus: null }];
   for (;;) {
     const candidates = orderRule === 'CURRENT_RANK' ? order : finalOrder;
@@ -123,7 +129,7 @@ export function buildRevealSteps<C extends RevealIoiCell | RevealIcpcCell>(
       marked = team.userId;
       push(pid, 'problem');
       cells = { ...cells, [team.userId]: { ...cells[team.userId], [pid]: team.after[pid] } };
-      order = rankRevealCells(mode, teams, cells);
+      order = rankRevealCells(mode, teams, cells, ioiTieBreak);
       push(pid, 'reveal');
     } else {
       done.add(team.userId);

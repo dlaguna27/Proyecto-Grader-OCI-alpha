@@ -68,6 +68,41 @@ export function ioiTaskScore(
   return { totalCenti: submissions.reduce((a, s) => Math.max(a, s.totalCenti), 0), subtaskBest };
 }
 
+/**
+ * Same as `ioiTaskScore`, plus when the task score last increased: the `atMs` of the submission
+ * that brought it to its final value (null while the score is 0). `subs` must be in time order.
+ */
+export function ioiTaskScoreReached(
+  rule: IoiTaskScoreRule,
+  subs: readonly { atMs: number; score: SubmissionScore }[],
+): { totalCenti: number; reachedAtMs: number | null } {
+  const subtaskBest: Record<string, number> = {};
+  let bestSubmission = 0;
+  let totalCenti = 0;
+  let reachedAtMs: number | null = null;
+  for (const s of subs) {
+    for (const st of s.score.subtasks) subtaskBest[st.id] = Math.max(subtaskBest[st.id] ?? 0, st.scoreCenti);
+    bestSubmission = Math.max(bestSubmission, s.score.totalCenti);
+    const t = rule === 'MAX_SUBTASK' ? Object.values(subtaskBest).reduce((a, b) => a + b, 0) : bestSubmission;
+    if (t > totalCenti) {
+      totalCenti = t;
+      reachedAtMs = s.atMs;
+    }
+  }
+  return { totalCenti, reachedAtMs };
+}
+
+/** TIME: equal totals are ordered by who reached them first (no shared ranks); SHARED: equal totals share a rank. */
+export type IoiTieBreak = 'TIME' | 'SHARED';
+
+export function compareIoiTotals(
+  a: { totalCenti: number; reachedAtMs: number | null },
+  b: { totalCenti: number; reachedAtMs: number | null },
+  tieBreak: IoiTieBreak,
+): number {
+  return b.totalCenti - a.totalCenti || (tieBreak === 'TIME' ? (a.reachedAtMs ?? 0) - (b.reachedAtMs ?? 0) : 0);
+}
+
 function clampPpm(v: number): number {
   if (!Number.isFinite(v) || v < 0) return 0;
   return Math.min(PPM, Math.floor(v));
