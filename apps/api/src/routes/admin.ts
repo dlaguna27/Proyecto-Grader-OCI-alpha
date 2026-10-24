@@ -37,6 +37,7 @@ const ContestBody = z.object({
   penaltyMinutes: z.number().int().min(0).max(1000).optional(),
   countCompileErrors: z.boolean().optional(),
   ioiTaskScoreRule: z.enum(['MAX_SUBTASK', 'BEST_SUBMISSION']).optional(),
+  ioiTieBreak: z.enum(['TIME', 'SHARED']).optional(),
   maxSubmissionsPerTask: z.number().int().min(1).max(10000).nullable().optional(),
   languages: z.array(z.enum(LANGUAGES)).min(1).optional(),
   visible: z.boolean().optional(),
@@ -622,7 +623,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Params: { id: string } }>('/api/admin/contests/:id/results.csv', async (req, reply) => {
     const board = await getScoreboard(req.params.id, true);
     const header = ['rank', 'username', 'name', 'members', 'organization', 'region', ...board.problems.map((p) => p.code)];
-    header.push(...(board.mode === 'IOI' ? ['total'] : ['solved', 'penalty']));
+    header.push(...(board.mode === 'IOI' ? ['total', 'reached_at'] : ['solved', 'penalty']));
     const maxPrec = Math.max(0, ...board.problems.map((p) => p.scorePrecision));
     const lines = [header.join(',')];
     for (const r of board.rows) {
@@ -631,7 +632,7 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
         const c = r.icpc![p.id];
         return c.solved ? `+${c.rejected || ''} (${c.solveMinute})` : c.rejected ? `-${c.rejected}` : '';
       });
-      const tail = board.mode === 'IOI' ? [formatScore(r.totalCenti!, maxPrec)] : [String(r.solved), String(r.penalty)];
+      const tail = board.mode === 'IOI' ? [formatScore(r.totalCenti!, maxPrec), r.reachedAtMs == null ? '' : hms(r.reachedAtMs)] : [String(r.solved), String(r.penalty)];
       lines.push([r.rank, r.username, r.displayName, r.members, r.organization, r.region, ...cells, ...tail].map(csvEscape).join(','));
     }
     reply.type('text/csv; charset=utf-8');
@@ -646,4 +647,9 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
 function statusOrVerdict(values: string[]): Prisma.JudgementWhereInput[] {
   const statuses = values.filter((v): v is JudgementStatus => v in JudgementStatus);
   return [{ verdict: { in: values } }, ...(statuses.length ? [{ status: { in: statuses } }] : [])];
+}
+
+function hms(ms: number): string {
+  const s = Math.floor(ms / 1000);
+  return `${Math.floor(s / 3600)}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 }

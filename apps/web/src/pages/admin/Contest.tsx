@@ -31,6 +31,7 @@ interface AdminContest {
   penaltyMinutes: number;
   countCompileErrors: boolean;
   ioiTaskScoreRule: 'MAX_SUBTASK' | 'BEST_SUBMISSION';
+  ioiTieBreak: 'TIME' | 'SHARED';
   maxSubmissionsPerTask: number | null;
   languages: string[];
   visible: boolean;
@@ -221,6 +222,7 @@ function SettingsTab({ c }: { c: AdminContest }) {
         penaltyMinutes: f.penaltyMinutes,
         countCompileErrors: f.countCompileErrors,
         ioiTaskScoreRule: f.ioiTaskScoreRule,
+        ioiTieBreak: f.ioiTieBreak,
         maxSubmissionsPerTask: limitOn ? f.maxSubmissionsPerTask ?? 50 : null,
         languages: f.languages,
         visible: f.visible,
@@ -273,6 +275,21 @@ function SettingsTab({ c }: { c: AdminContest }) {
         ) : (
           <Field label={t('Penalty per rejected attempt (minutes)')}>
             <Input type="number" min={0} value={f.penaltyMinutes} onChange={(e) => set('penaltyMinutes', Number(e.target.value))} />
+          </Field>
+        )}
+        {f.scoringMode === 'IOI' && (
+          <Field
+            label={t('Ties in IOI')}
+            hint={
+              f.ioiTieBreak === 'TIME'
+                ? t('With equal totals, the team that reached its total first ranks higher; teams still tied (e.g. 0 points) are ordered by name.')
+                : t('Teams with equal totals share a rank (official IOI rule).')
+            }
+          >
+            <NativeSelect value={f.ioiTieBreak} onChange={(e) => set('ioiTieBreak', e.target.value as AdminContest['ioiTieBreak'])}>
+              <option value="TIME">{t('Broken by time reached')}</option>
+              <option value="SHARED">{t('Shared rank')}</option>
+            </NativeSelect>
           </Field>
         )}
         <Field

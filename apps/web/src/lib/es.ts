@@ -372,4 +372,10 @@ export const ES: Record<string, string> = {
   "{n} teams": "{n} equipos",
   "— none —": "— ninguno —",
   "“All tests” (MIN) gives points only if every test passes; “Per test” (SUM) splits the points across tests. Saving rescores existing submissions without rejudging.": "“Todas las pruebas” (MIN) da puntos solo si pasan todas; “Por prueba” (SUM) reparte los puntos entre las pruebas. Guardar recalifica los envíos existentes sin reevaluarlos.",
+  "Ties in IOI": "Empates en IOI",
+  "With equal totals, the team that reached its total first ranks higher; teams still tied (e.g. 0 points) are ordered by name.": "Con el mismo total, queda más arriba el equipo que llegó primero a ese total; si siguen empatados (por ejemplo, con 0 puntos) se ordenan por nombre.",
+  "Teams with equal totals share a rank (official IOI rule).": "Los equipos con el mismo total comparten posición (regla oficial de la IOI).",
+  "Broken by time reached": "Desempate por tiempo",
+  "Shared rank": "Posición compartida",
+  "Time the team reached this total": "Momento en que el equipo alcanzó este total",
 };

@@ -29,6 +29,7 @@ export interface IoiCell {
   scoreCenti: number;
   attempts: number;
   pending: number;
+  reachedAtMs?: number | null;
 }
 
 export interface IcpcCell {
@@ -139,6 +140,7 @@ export interface SubmissionDetail {
 export interface Board {
   contest: { id: string; name: string; scoringMode: Mode; startsAt: string; endsAt: string };
   mode: Mode;
+  ioiTieBreak?: 'TIME' | 'SHARED';
   frozen: boolean;
   freezeAt: string | null;
   generatedAt: string;
@@ -152,6 +154,7 @@ export interface Board {
     organization: string;
     region: string;
     totalCenti?: number;
+    reachedAtMs?: number | null;
     ioi?: Record<string, IoiCell>;
     solved?: number;
     penalty?: number;

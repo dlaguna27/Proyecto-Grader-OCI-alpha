@@ -82,7 +82,7 @@ function RevealSetup({ d, onStart, onReload }: { d: RevealData; onStart: (s: Sta
 function zeroCell(c: Cell, ioi: boolean): Cell {
   if (ioi) {
     const x = c as IoiCell;
-    return { scoreCenti: 0, attempts: 0, pending: x.attempts };
+    return { scoreCenti: 0, attempts: 0, pending: x.attempts, reachedAtMs: null };
   }
   const x = c as IcpcCell;
   const attempts = x.rejected + (x.solved ? 1 : 0) + x.pendingCount;
@@ -110,7 +110,7 @@ function Revealer({ d, start, onExit }: { d: RevealData; start: Start; onExit: (
       };
     });
     const order: RevealOrder = start === 'ZERO' ? 'FINAL_RANK' : 'CURRENT_RANK';
-    return buildRevealSteps<Cell>(d.after.mode, problems.map((p) => p.id), teams, order);
+    return buildRevealSteps<Cell>(d.after.mode, problems.map((p) => p.id), teams, order, d.after.ioiTieBreak ?? 'SHARED');
   }, [d, ioi, problems, start]);
 
   const [i, setI] = useState(0);

@@ -23,6 +23,11 @@ enum IoiTaskScoreRule {
   BEST_SUBMISSION
 }
 
+enum IoiTieBreak {
+  TIME
+  SHARED
+}
+
 enum BalloonPalette {
   ICPC
   CUSTOM
@@ -105,6 +110,8 @@ model Contest {
   penaltyMinutes        Int              @default(20)
   countCompileErrors    Boolean          @default(false)
   ioiTaskScoreRule      IoiTaskScoreRule @default(MAX_SUBTASK)
+  /// TIME = equal IOI totals ordered by who reached them first; SHARED = equal totals share a rank.
+  ioiTieBreak           IoiTieBreak      @default(TIME)
   /// Null = unlimited.
   maxSubmissionsPerTask Int?
   languages             String[]         @default(["cpp", "python"])
