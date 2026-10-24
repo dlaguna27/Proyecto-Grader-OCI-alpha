@@ -45,7 +45,7 @@ The projector scoreboard is `http://SERVER/board/<contest id>` (the *Scoreboard*
 
 Each problem shows its balloon color on the problem list and scoreboard. ICPC: solved cells show the balloon. IOI: the cell is filled with the problem's color, faint for low scores and full color at the problem's maximum.
 
-*Ranking history* (`/board/<contest id>/history`, also a tab next to the scoreboard) charts every team's position at each minute of the contest. It follows the same visibility rules as the scoreboard: while frozen, the public chart stops at the freeze.
+*Ranking history* (`/board/<contest id>/history`, also a tab next to the scoreboard) charts every team's position at each minute of the contest, or its points (problems solved in ICPC); checkboxes choose which teams are drawn. It follows the same visibility rules as the scoreboard: while frozen, the public chart stops at the freeze.
 
 *Score revealer* (admin only, button on the contest page) is a full-screen closing-ceremony view that reveals the final ranking from last place to first, one key press per step. Start it from the frozen scoreboard (reveals the hidden results, ICPC-resolver style) or from zero (every team starts at 0).
 
