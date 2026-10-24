@@ -93,7 +93,7 @@ Every 30–60 minutes run `.\scripts\backup.ps1` (safe while running) and copy t
 ## 6. What contestants should know (put this on the instruction sheet)
 
 - Open `http://<server IP>` and log in with the card.
-- *Scoreboard* → *Ranking history* shows every team's position minute by minute; your own line is highlighted. During the freeze it stops at the freeze time.
+- *Scoreboard* → *Ranking history* shows every team's position minute by minute; your own line is highlighted. The *Points* button (*Problems solved* in ICPC) switches to each team's total over time. Tick or untick teams in the list to choose which lines are drawn (*All* / *None* select everyone or nobody); the browser remembers the choice. During the freeze it stops at the freeze time.
 - IOI ties (default): with equal totals, the team that reached its total first ranks higher; the time is shown under the total. Teams still tied (same second, or 0 points) are ordered by name. To let equal totals share a rank instead, set *Ties in IOI* to *Shared rank* in contest Settings.
 - Check the language selector before each submission (pasting C++ with Python selected gives a compile error).
 - Languages: **C++20** (`g++ -O3 -std=gnu++20`) and **Python 3**. Read standard input, write standard output; no files, no network.

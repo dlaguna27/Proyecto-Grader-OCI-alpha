@@ -35,6 +35,19 @@ export function teamColor(i: number): string {
 
 const fmtMinute = (m: number) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
 
+type ChartView = 'rank' | 'points';
+const VIEW_KEY = 'oci.history.view';
+const hiddenKey = (cid: string) => `oci.history.hidden.${cid}`;
+
+function loadHidden(cid: string): Set<string> {
+  try {
+    const v = JSON.parse(localStorage.getItem(hiddenKey(cid)) ?? '[]');
+    return new Set(Array.isArray(v) ? v.filter((x) => typeof x === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export function RankingHistoryPage({ standalone }: { standalone?: boolean }) {
   const { cid } = useParams();
   const q = useQuery({
@@ -57,6 +70,8 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [hovered, setHovered] = useState<string | null>(null);
   const [minute, setMinute] = useState<number | null>(null);
+  const [view, setViewState] = useState<ChartView>(() => (localStorage.getItem(VIEW_KEY) === 'points' ? 'points' : 'rank'));
+  const [hidden, setHiddenState] = useState<Set<string>>(() => loadHidden(cid));
   const seeded = useRef(false);
   useEffect(() => {
     if (seeded.current || !me) return;
@@ -71,6 +86,22 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
       else next.add(id);
       return next;
     });
+
+  const setView = (v: ChartView) => {
+    setViewState(v);
+    localStorage.setItem(VIEW_KEY, v);
+  };
+  const setHidden = (next: Set<string>) => {
+    setHiddenState(next);
+    localStorage.setItem(hiddenKey(cid), JSON.stringify([...next]));
+  };
+  const toggleShown = (id: string) => {
+    const next = new Set(hidden);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setHidden(next);
+  };
+  const visibleCount = h.series.filter((s) => !hidden.has(s.userId)).length;
 
   const shown = minute ?? h.lastMinute;
   const legend = useMemo(
@@ -106,31 +137,86 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
       ) : (
         <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
           <Card className="p-3">
-            <RankChart h={h} selected={selected} hovered={hovered} setHovered={setHovered} minute={minute} setMinute={setMinute} onToggle={toggle} />
+            <div className="mb-2 flex gap-1">
+              <Button size="sm" variant={view === 'rank' ? 'default' : 'outline'} onClick={() => setView('rank')}>
+                {t('Position')}
+              </Button>
+              <Button size="sm" variant={view === 'points' ? 'default' : 'outline'} onClick={() => setView('points')}>
+                {h.mode === 'IOI' ? t('Points') : t('Problems solved')}
+              </Button>
+            </div>
+            {visibleCount === 0 ? (
+              <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">{t('No teams selected. Tick teams in the list to show them.')}</div>
+            ) : (
+              <HistoryChart
+                h={h}
+                view={view}
+                hidden={hidden}
+                selected={selected}
+                hovered={hovered}
+                setHovered={setHovered}
+                minute={minute}
+                setMinute={setMinute}
+                onToggle={toggle}
+              />
+            )}
             <p className="mt-2 px-1 text-xs text-muted-foreground">
-              {t('Position at each minute of the contest (1 = first). Hover to see a minute; click a line or a team to highlight it.')}
+              {view === 'rank'
+                ? t('Position at each minute of the contest (1 = first). Hover to see a minute; click a line or a team to highlight it.')
+                : h.mode === 'IOI'
+                  ? t('Total points at each minute of the contest. Hover to see a minute; click a line or a team to highlight it.')
+                  : t('Problems solved at each minute of the contest. Hover to see a minute; click a line or a team to highlight it.')}{' '}
+              {t('Use the checkboxes to choose which teams are shown.')}
             </p>
           </Card>
           <Card className="max-h-[70vh] overflow-y-auto p-2">
             <div className="flex items-center justify-between px-2 py-1 text-xs font-medium text-muted-foreground">
               <span>{minute === null ? (h.lastMinute >= h.durationMinutes ? t('Final') : t('Now ({m})', { m: fmtMinute(h.lastMinute) })) : t('At {m}', { m: fmtMinute(minute) })}</span>
-              {selected.size > 0 && (
-                <button className="hover:underline" onClick={() => setSelected(new Set())}>
-                  {t('Clear')}
+              <span className="flex gap-2">
+                {selected.size > 0 && (
+                  <button className="hover:underline" onClick={() => setSelected(new Set())}>
+                    {t('Clear')}
+                  </button>
+                )}
+                <button className="hover:underline disabled:opacity-40 disabled:no-underline" disabled={hidden.size === 0} onClick={() => setHidden(new Set())}>
+                  {t('All')}
                 </button>
-              )}
+                <button
+                  className="hover:underline disabled:opacity-40 disabled:no-underline"
+                  disabled={visibleCount === 0}
+                  onClick={() => setHidden(new Set(h.series.map((x) => x.userId)))}
+                >
+                  {t('None')}
+                </button>
+              </span>
             </div>
             {legend.map(({ s, i, rank }) => (
-              <button
+              <div
                 key={s.userId}
+                role="button"
+                tabIndex={0}
                 onClick={() => toggle(s.userId)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') toggle(s.userId);
+                }}
                 onMouseEnter={() => setHovered(s.userId)}
                 onMouseLeave={() => setHovered(null)}
                 className={cn(
-                  'flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-muted',
+                  'flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-muted',
                   selected.has(s.userId) && 'bg-muted font-medium',
+                  hidden.has(s.userId) && 'text-muted-foreground opacity-60',
                 )}
               >
+                <input
+                  type="checkbox"
+                  className="h-3.5 w-3.5 shrink-0 cursor-pointer"
+                  style={{ accentColor: teamColor(i) }}
+                  checked={!hidden.has(s.userId)}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => toggleShown(s.userId)}
+                  aria-label={t('Show {name} on the chart', { name: s.displayName })}
+                  title={t('Show on the chart')}
+                />
                 <span className="h-3 w-3 shrink-0 rounded-full" style={{ background: teamColor(i) }} />
                 <span className="w-7 shrink-0 text-right font-mono text-xs text-muted-foreground">{rank}</span>
                 <span className="min-w-0 flex-1 truncate">
@@ -140,7 +226,7 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
                 <span className="shrink-0 font-mono text-xs">
                   {h.mode === 'IOI' ? score(s.scores[shown], h.scorePrecision) : `${s.scores[shown]} / ${s.penalties?.[shown] ?? 0}`}
                 </span>
-              </button>
+              </div>
             ))}
           </Card>
         </div>
@@ -152,8 +238,16 @@ function HistoryView({ h, cid, standalone }: { h: RankHistory; cid: string; stan
 const W = 1000;
 const PAD = { l: 40, r: 12, t: 12, b: 28 };
 
-function RankChart({
+function niceStep(max: number, target = 6): number {
+  const raw = Math.max(max, 1) / target;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  return ([1, 2, 5, 10].find((f) => f * mag >= raw) ?? 10) * mag;
+}
+
+function HistoryChart({
   h,
+  view,
+  hidden,
   selected,
   hovered,
   setHovered,
@@ -162,6 +256,8 @@ function RankChart({
   onToggle,
 }: {
   h: RankHistory;
+  view: ChartView;
+  hidden: Set<string>;
   selected: Set<string>;
   hovered: string | null;
   setHovered: (id: string | null) => void;
@@ -175,13 +271,31 @@ function RankChart({
   const plotH = H - PAD.t - PAD.b;
   const D = Math.max(1, h.durationMinutes);
   const x = (m: number) => PAD.l + (m / D) * plotW;
-  const y = (r: number) => PAD.t + (n <= 1 ? plotH / 2 : ((r - 1) / (n - 1)) * plotH);
   const xStep = [5, 10, 15, 30, 60, 120].find((s) => D / s <= 10) ?? 240;
-  const yStep = n <= 12 ? 1 : n <= 30 ? 5 : 10;
-  const yTicks = [1, ...Array.from({ length: Math.floor(n / yStep) }, (_, k) => (k + 1) * yStep).filter((r) => r > 1 && r < n), ...(n > 1 ? [n] : [])];
+  const visible = h.series.map((s, i) => ({ s, i })).filter(({ s }) => !hidden.has(s.userId));
+  const values = (s: RankHistory['series'][number]) => (view === 'rank' ? s.ranks : s.scores);
+
+  let y: (v: number) => number;
+  let yTicks: number[];
+  let yLabel: (v: number) => string;
+  if (view === 'rank') {
+    y = (r) => PAD.t + (n <= 1 ? plotH / 2 : ((r - 1) / (n - 1)) * plotH);
+    const yStep = n <= 12 ? 1 : n <= 30 ? 5 : 10;
+    yTicks = [1, ...Array.from({ length: Math.floor(n / yStep) }, (_, k) => (k + 1) * yStep).filter((r) => r > 1 && r < n), ...(n > 1 ? [n] : [])];
+    yLabel = (r) => String(r);
+  } else {
+    const unit = h.mode === 'IOI' ? 100 : 1;
+    const maxUnits = Math.max(1, ...visible.flatMap(({ s }) => s.scores)) / unit;
+    const step = h.mode === 'IOI' ? niceStep(maxUnits) : Math.max(1, Math.round(niceStep(maxUnits)));
+    const top = Math.ceil(maxUnits / step) * step * unit;
+    y = (v) => PAD.t + plotH - (v / top) * plotH;
+    yTicks = Array.from({ length: Math.round(top / (step * unit)) + 1 }, (_, k) => Math.round(k * step * unit));
+    yLabel = (v) => (h.mode === 'IOI' ? score(v, h.scorePrecision) : String(v));
+  }
+
   const emphasis = selected.size > 0 || hovered !== null;
   const isOn = (id: string) => selected.has(id) || hovered === id;
-  const lines = h.series.map((s, i) => ({ s, i, pts: s.ranks.map((r, m) => `${x(m).toFixed(1)},${y(r).toFixed(1)}`).join(' ') }));
+  const lines = visible.map(({ s, i }) => ({ s, i, pts: values(s).map((v, m) => `${x(m).toFixed(1)},${y(v).toFixed(1)}`).join(' ') }));
   const ordered = [...lines.filter((l) => !isOn(l.s.userId)), ...lines.filter((l) => isOn(l.s.userId))];
 
   const onMove = (e: MouseEvent<SVGSVGElement>) => {
@@ -192,12 +306,12 @@ function RankChart({
   };
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full select-none" onMouseMove={onMove} onMouseLeave={() => setMinute(null)} role="img" aria-label={t('Ranking history')}>
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full select-none" onMouseMove={onMove} onMouseLeave={() => setMinute(null)} role="img" aria-label={view === 'rank' ? t('Ranking history') : t('Points history')}>
       {yTicks.map((r) => (
         <g key={`y${r}`}>
           <line x1={PAD.l} x2={W - PAD.r} y1={y(r)} y2={y(r)} className="stroke-border" strokeWidth={1} />
           <text x={PAD.l - 6} y={y(r)} dy="0.32em" textAnchor="end" className="fill-muted-foreground text-[11px]">
-            {r}
+            {yLabel(r)}
           </text>
         </g>
       ))}
@@ -241,7 +355,7 @@ function RankChart({
           {lines
             .filter((l) => isOn(l.s.userId))
             .map(({ s, i }) => (
-              <circle key={s.userId} cx={x(minute)} cy={y(s.ranks[minute])} r={5} fill={teamColor(i)} className="stroke-background" strokeWidth={2} />
+              <circle key={s.userId} cx={x(minute)} cy={y(values(s)[minute])} r={5} fill={teamColor(i)} className="stroke-background" strokeWidth={2} />
             ))}
         </g>
       )}
